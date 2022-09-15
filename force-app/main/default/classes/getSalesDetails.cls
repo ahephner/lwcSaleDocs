@@ -1,6 +1,6 @@
 public with sharing class getSalesDetails {
     @AuraEnabled(cacheable=true)
-    public static list<Sales_Doc_Detail__c> getDetails(Integer limitSize, Integer offset, Id recordId){
+    public static list<Sales_Doc_Detail__c> getDetails(Integer limitSize, Integer offset, String recordId){
         list<Sales_Doc_Detail__c> related = [Select Id, Name, Product__c, Product_Name__c,
         Product_Code__c,Quantity__c, Sales_Document__c, Sales_Document__r.Name, Unit_Price__c
         from Sales_Doc_Detail__c
