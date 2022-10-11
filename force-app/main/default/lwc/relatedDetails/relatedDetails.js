@@ -3,6 +3,7 @@ import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 const columns = [
     {label:'Order', 'fieldName':'nameURL', type:'url', typeAttributes:{label:{fieldName:'docName'}},target:'_blank' },
     {label:'Product', 'fieldName':'Product_Name__c', type:'text'},
+    {label: 'Doc Date', 'fieldName': 'Doc_Date__c', type: 'text'}, 
     {label:'Qty', 'fieldName':'Quantity__c', type:'text'},
     {label:'Unit Price', 'fieldName':'Unit_Price__c', type:'text'}
 ]
@@ -29,8 +30,10 @@ export default class RelatedDetails extends LightningElement{
                     docName = row.Sales_Document__r.Name;
                     return{...row, nameURL, docName}
                 })
-                let updates = [...this.salesDocs, ...records];
+                let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
+                let updates = [...this.salesDocs, ...sorted];
                 this.salesDocs = updates; 
+                console.log(JSON.stringify(this.salesDocs))
             }).catch(err =>{
                 console.log('err', err); 
             })

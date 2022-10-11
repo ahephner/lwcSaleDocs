@@ -3,9 +3,10 @@
             <lightning-datatable key-field="Id"
                     data={salesDocs}
                     columns={columns}
+                    column-widths-mode ='auto'
                     enable-infinite-loading
-                    onloadmore={loadMoreData}
-                    show-row-number-column="false">
+                    hide-checkbox-column
+                    onloadmore={loadMoreData}>
             </lightning-datatable> 
         </div>
     
