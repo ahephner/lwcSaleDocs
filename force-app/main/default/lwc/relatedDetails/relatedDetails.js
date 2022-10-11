@@ -19,7 +19,7 @@ export default class RelatedDetails extends LightningElement{
     }
 
         loadData(){
-            getDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
+           return getDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
             .then((res)=>{
                 let records
                 let nameURL; 
@@ -40,7 +40,6 @@ export default class RelatedDetails extends LightningElement{
            const currentRecord = this.salesDocs; 
            const {target} = event; 
            target.isLoading = true; 
-           console.log('total rows '+this.totalNumberOfRows)
            this.rowOffSet = this.rowOffSet + this.rowLimit;
            this.loadData()
            .then(()=>{
