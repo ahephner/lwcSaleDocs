@@ -4,15 +4,18 @@ import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 export default class RelatedDetails extends LightningElement{
     @api recordId;
     @api totalNumberOfRows;
+    loadAgain = true;
+    //scroll height; 
+    sHeight 
     columns = [
         {label:'Order', 'fieldName':'nameURL', type:'url', typeAttributes:{label:{fieldName:'docName'}},target:'_blank' },
         {label:'Product', 'fieldName':'Product_Name__c', type:'text'},
         {label: 'Doc Date', 'fieldName': 'Doc_Date__c', type: 'text'}, 
         {label:'Qty', 'fieldName':'Quantity__c', type:'text'},
         {label:'Unit Price', 'fieldName':'Unit_Price__c', type:'text'},
-        {type: 'button-icon', 
-         initialWidth: 75,typeAttributes:{
-            iconName:'Reorder', 
+        {label: '', type: 'button', 
+          typeAttributes:{
+            label: 'Re-Order', 
             name: 'add prod' ,
             title: 'Reorder',
             disabled: false,
@@ -24,7 +27,7 @@ export default class RelatedDetails extends LightningElement{
         },
     ];
     @track salesDocs = [];
-    rowLimit = 10;
+    rowLimit = 25;
     rowOffSet = 0; 
 
     connectedCallback(){
@@ -34,22 +37,29 @@ export default class RelatedDetails extends LightningElement{
         loadData(){
            return getDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
             .then((res)=>{
-                let records
-                let nameURL; 
-                let docName; 
-                let rowValue; 
-                let rowVariant; 
-                records = res.map(row=>{
-                    nameURL =  `/${row.Sales_Document__c}`;
-                    docName = row.Sales_Document__r.Name;
-                    rowValue = 'Add';
-                    rowVariant = 'brand';
-                    return{...row, nameURL, docName, rowValue, rowVariant}
-                })
-                let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
-                let updates = [...this.salesDocs, ...sorted];
-                this.salesDocs = updates; 
-                
+                if(res.length>1){
+                    let records
+                    let nameURL; 
+                    let docName; 
+                    let rowValue; 
+                    let rowVariant; 
+                    records = res.map(row=>{
+                        nameURL =  `/${row.Sales_Document__c}`;
+                        docName = row.Sales_Document__r.Name;
+                        rowValue = 'Add';
+                        rowVariant = 'brand';
+                        return{...row, nameURL, docName, rowValue, rowVariant}
+                    })
+                    let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
+                    let updates = [...this.salesDocs, ...sorted];
+                    this.salesDocs = updates; 
+                    this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
+                }else{
+                    console.log('all done');
+                    
+                    this.loadAgain = false; 
+                }
+
             }).catch(err =>{
                 console.log('err', err); 
             })
@@ -57,18 +67,30 @@ export default class RelatedDetails extends LightningElement{
 
         loadMoreData(event){
            const currentRecord = this.salesDocs; 
-           const {target} = event; 
-           target.isLoading = true; 
+           //const {target} = event; 
+           //target.isLoading = true; 
            this.rowOffSet = this.rowOffSet + this.rowLimit;
            this.loadData()
-           .then(()=>{
-            target.isLoading = false; 
-           }) 
+        //    .then(()=>{
+        //     //target.isLoading = false;
+        //     console.log() 
+        //    }) 
             
         }
 
         handleRowAction(e){
-            console.log(e)
+            console.log(e.detail.action.name)
+        }
+
+        handleScroll(evt){
+            let btm = evt.target.scrollTop/this.sHeight
+            
+            
+            if(btm >= .9 && this.loadAgain){
+                //this.loadAgain = false; 
+                this.loadMoreData(); 
+            }
+            
         }
 
 }

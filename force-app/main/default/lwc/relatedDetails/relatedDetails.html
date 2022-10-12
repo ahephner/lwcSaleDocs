@@ -1,6 +1,5 @@
 <template>
-        <div style="height:200px">
-            <lightning-datatable key-field="Id"
+                    <!-- <lightning-datatable key-field="Id"
                     data={salesDocs}
                     columns={columns}
                     column-widths-mode ='auto'
@@ -8,7 +7,14 @@
                     hide-checkbox-column
                     onrowaction={handleRowAction}
                     onloadmore={loadMoreData}>
-            </lightning-datatable> 
+            </lightning-datatable>  -->
+        <div style="height:200px" class="slds-scrollable_y"  onscroll={handleScroll} data-id="outter">
+                <template for:each={salesDocs} for:item="x" for:index="index">
+                        <div class='box' key={x.Id}>
+                                <p>{index} - {x.Product_Name__c}</p>
+                        </div>
+                </template>
+
         </div>
     
 </template>
