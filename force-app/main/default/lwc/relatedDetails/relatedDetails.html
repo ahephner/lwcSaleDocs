@@ -8,6 +8,13 @@
                     onrowaction={handleRowAction}
                     onloadmore={loadMoreData}>
                 </lightning-datatable>  -->
+        <template if:true={canOrder}>
+                <div class="orderBox">
+                        <lightning-button variant='brand' label='Make Order' 
+                        title='Make Order' onclick={makeOrder} 
+                        ></lightning-button>
+                </div>
+        </template>
         <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
             <table class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
                 <thead>
@@ -78,8 +85,8 @@
                                         </td>
                                         <td>
                                                 <div class="slds-truncate">
-                                                        <lightning-button variant="brand" label="Reorder" 
-                                                        title="Reorder" onclick={handleRowAction} name={x.Id} 
+                                                        <lightning-button variant={x.rowVariant} label={x.btnName} 
+                                                        title={x.btnName} onclick={handleRowClick} name={x.Product_Code__c} 
                                                         ></lightning-button>
                                                 </div>
                                         </td>
