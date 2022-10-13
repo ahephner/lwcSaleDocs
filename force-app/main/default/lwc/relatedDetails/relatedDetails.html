@@ -7,14 +7,98 @@
                     hide-checkbox-column
                     onrowaction={handleRowAction}
                     onloadmore={loadMoreData}>
-            </lightning-datatable>  -->
-        <div style="height:200px" class="slds-scrollable_y"  onscroll={handleScroll} data-id="outter">
-                <template for:each={salesDocs} for:item="x" for:index="index">
-                        <div class='box' key={x.Id}>
-                                <p>{index} - {x.Product_Name__c}</p>
-                        </div>
-                </template>
-
+                </lightning-datatable>  -->
+        <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
+                <thead>
+                        <tr class="slds-line-height_reset">
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Sales Doc">Sales Doc</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Product Name">Product Name</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Product Code">Product Code</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Qty">Quantity</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Unit Price">Unit Price</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Current Cost">Current Cost</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Invoice Date">Invoice Date</div>
+                                </th>
+                                <th scope="col">
+                                        <div class="slds-truncate" title="Reorder">Reorder</div>
+                                </th>
+                        </tr>
+                </thead>
+                <tbody>
+                        <template for:each={salesDocs} for:item="x" for:index="index">
+                                <tr class="slds-hint-parent" key={x.Id}>
+                                        <th data-lable={x.Sales_Document__r.Name}>
+                                                <div class="slds-truncate">
+                                                        <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
+                                                </div>
+                                        </th>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        {x.Product_Name__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        {x.Product_Code__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        {x.Quantity__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        ${x.Unit_Price__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        ${x.Product__r.Product_Cost__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        {x.Doc_Date__c}
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        <lightning-button variant="brand" label="Reorder" 
+                                                        title="Reorder" onclick={handleRowAction} name={x.Id} 
+                                                        ></lightning-button>
+                                                </div>
+                                        </td>
+                                </tr>
+                                
+                        </template>
+                        
+                </tbody>
+        
+                <!-- <div style="height:400px" class="slds-scrollable_y"  onscroll={handleScroll} data-id="outter">
+                        <template for:each={salesDocs} for:item="x" for:index="index">
+                                <div class='box' key={x.Id}>
+                                        <p>{index} - {x.Product_Name__c}</p>
+                                </div>
+                        </template>
+        
+                </div> -->
+            </table>
         </div>
+
     
 </template>

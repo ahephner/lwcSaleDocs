@@ -79,18 +79,20 @@ export default class RelatedDetails extends LightningElement{
         }
 
         handleRowAction(e){
-            console.log(e.detail.action.name)
+            console.log(e.target.name)
         }
 
-        handleScroll(evt){
+       async handleScroll(evt){
             let btm = evt.target.scrollTop/this.sHeight
+                console.log(1, btm);
+                console.log(2, this.sHeight); 
             
-            
-            if(btm >= .9 && this.loadAgain){
-                //this.loadAgain = false; 
-                this.loadMoreData(); 
+            if(btm >= .8 && this.loadAgain){
+                console.log('in load more');
+                 
+                //this.loadMoreData(); 
             }
-            
+        
         }
 
 }
