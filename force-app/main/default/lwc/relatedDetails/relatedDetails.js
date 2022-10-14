@@ -1,9 +1,10 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
-
+import createOp from '@salesforce/apex/getSalesDetails.createOp'
 export default class RelatedDetails extends LightningElement{
     @api recordId;
     @api totalNumberOfRows;
+    loading = true;
     loadAgain = true;
     @track selectedProducts = []; 
     //scroll height; 
@@ -34,6 +35,7 @@ export default class RelatedDetails extends LightningElement{
 
     connectedCallback(){
         this.loadData(); 
+        this.loading = false; 
     }
 
         loadData(){
@@ -56,6 +58,7 @@ export default class RelatedDetails extends LightningElement{
                     let updates = [...this.salesDocs, ...sorted];
                     this.salesDocs = updates; 
                     this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
+                    this.loading = false; 
                 }else{
                     console.log('all done');
                     
@@ -89,7 +92,7 @@ export default class RelatedDetails extends LightningElement{
                     this.selectedProducts = [
                         ...this.selectedProducts, {
                              code: this.salesDocs[index].Product_Code__c,
-                             qty: this.salesDocs[index].Quantity__c
+                             quantity: this.salesDocs[index].Quantity__c
                         }
                     ]
                     //show user prod selected
@@ -119,7 +122,12 @@ export default class RelatedDetails extends LightningElement{
         }
 
         makeOrder(){
-            console.log('order');
+            createOp({accId: this.recordId, prod: this.selectedProducts})
+            .then(res=>{
+                this.loading = false; 
+            }).catch(err=>{
+                console.log(err);
+            })
             
         }
 

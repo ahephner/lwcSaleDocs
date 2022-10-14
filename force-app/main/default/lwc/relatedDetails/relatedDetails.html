@@ -1,13 +1,11 @@
 <template>
-                    <!-- <lightning-datatable key-field="Id"
-                    data={salesDocs}
-                    columns={columns}
-                    column-widths-mode ='auto'
-                    enable-infinite-loading
-                    hide-checkbox-column
-                    onrowaction={handleRowAction}
-                    onloadmore={loadMoreData}>
-                </lightning-datatable>  -->
+        <template if:true={loading}>
+                <div class="exampleHolder">
+                        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+                    </div>
+        </template>
+        
+        <template if:false={loading}>
         <template if:true={canOrder}>
                 <div class="orderBox">
                         <lightning-button variant='brand' label='Make Order' 
@@ -106,6 +104,6 @@
                 </div> -->
             </table>
         </div>
-
+        </template>
     
 </template>
