@@ -10,4 +10,18 @@ public with sharing class getSalesDetails {
 
         return related; 
     }
+    //wrapper to accept params from lwc
+    public class ProdWrapper{
+        @AuraEnabled 
+        public string code {get;set;}
+        @AuraEnabled
+        public integer quantity {get; set;}
+    }
+    
+    @AuraEnabled
+    public static string createOp(string accId, list<ProdWrapper> prod){
+        system.debug('id '+accId);
+        system.debug(prod); 
+        return 'back apex'; 
+    }
 }
