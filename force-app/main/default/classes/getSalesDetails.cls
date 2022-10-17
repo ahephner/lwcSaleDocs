@@ -20,8 +20,16 @@ public with sharing class getSalesDetails {
     
     @AuraEnabled
     public static string createOp(string accId, list<ProdWrapper> prod){
-        system.debug('id '+accId);
-        system.debug(prod); 
+        Map<String, Integer> prodMap = new Map<String, Integer>();
+         
+        
+        Account accInfo = [select id, Ship_Method__c, Sales_Rep__r.Warehouse__c from account where id =: accId]; 
+        
+        for(ProdWrapper x: prod){
+            prodMap.put(x.code, x.quantity); 
+        }
+        
+		List<PricebookEntry> pbe = [select id from PricebookEntry where ProductCode in: prodMap.keySet()];        
         return 'back apex'; 
     }
 }
