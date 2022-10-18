@@ -1,11 +1,13 @@
 import { LightningElement, api, track, wire } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp'
-export default class RelatedDetails extends LightningElement{
+export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
     loading = true;
     loadAgain = true;
+    newId;
     @track selectedProducts = []; 
     //scroll height; 
     sHeight 
@@ -125,10 +127,23 @@ export default class RelatedDetails extends LightningElement{
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
                 this.loading = false; 
+                this.newId = res
+                this.naviToOpp(this.newId); 
             }).catch(err=>{
                 console.log(err);
             })
             
         }
 
+        naviToOpp(id){
+            
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: id,
+                    objectApiName: 'namespace__ObjectName', // objectApiName is optional
+                    actionName: 'view'
+                }
+            });
+        }
 }
