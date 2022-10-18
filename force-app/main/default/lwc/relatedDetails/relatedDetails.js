@@ -124,6 +124,7 @@ export default class RelatedDetails extends LightningElement{
         makeOrder(){
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
+                console.log(res)
                 this.loading = false; 
             }).catch(err=>{
                 console.log(err);
