@@ -124,6 +124,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
         }
 
         makeOrder(){
+            this.loading = true; 
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
                 this.loading = false; 
@@ -141,7 +142,6 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                 type: 'standard__recordPage',
                 attributes: {
                     recordId: id,
-                    objectApiName: 'namespace__ObjectName', // objectApiName is optional
                     actionName: 'view'
                 }
             });
