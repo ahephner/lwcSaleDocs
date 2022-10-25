@@ -61,9 +61,10 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                     this.salesDocs = updates; 
                     this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
                     this.loading = false; 
+                    this.loadAgain = true;
                 }else{
                     console.log('all done');
-                    
+                    this.loading = false;
                     this.loadAgain = false; 
                 }
 
@@ -74,13 +75,14 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
 
         loadMoreData(event){
            const currentRecord = this.salesDocs; 
-           //const {target} = event; 
-           //target.isLoading = true; 
+           this.loading = true; 
+           this.loadAgain = false; 
+
            this.rowOffSet = this.rowOffSet + this.rowLimit;
            this.loadData()
         //    .then(()=>{
-        //     //target.isLoading = false;
-        //     console.log() 
+        //     this.loading = false;
+              
         //    }) 
             
         }
@@ -112,13 +114,10 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
 
        async handleScroll(evt){
             let btm = evt.target.scrollTop/this.sHeight
-                console.log(1, btm);
-                console.log(2, this.sHeight); 
             
             if(btm >= .8 && this.loadAgain){
-                console.log('in load more');
-                 
-                //this.loadMoreData(); 
+                console.log('in load more'); 
+                this.loadMoreData(); 
             }
         
         }

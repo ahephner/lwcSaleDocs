@@ -1,11 +1,7 @@
 <template>
-        <template if:true={loading}>
-                <div class="exampleHolder">
-                        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
-                    </div>
-        </template>
+       
         
-        <template if:false={loading}>
+        
         <template if:true={canOrder}>
                 <div class="orderBox">
                         <lightning-button variant='brand' label='Make Order' 
@@ -14,6 +10,8 @@
                 </div>
         </template>
         <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
+                
+        <!-- <template if:false={loading}> -->
             <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_resizable-cols" aria-labelledby="element-with-table-label other-element-with-table-label" role="grid">
                 <thead>
                         <tr class="slds-line-height_reset">
@@ -21,7 +19,13 @@
                                         <div class="slds-truncate" title="Sales Doc">Sales Doc</div>
                                 </th>
                                 <th scope="col" class="slds-is-resizable slds-cell_action-mode" style="width:300px">
-                                        <div style="width:300px"  class='slds-resizable' title="Product Name">Product Name</div>
+                                        <span class="slds-truncate" title="Product Name">Product Name</span>
+                                        <div class="slds-resizable">
+                                                <input type="range" aria-label="Name column width" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-540" max="1000" min="20" tabindex="0" />
+                                                <span class="slds-resizable__handle">
+                                                  <span class="slds-resizable__divider"></span>
+                                                </span>
+                                              </div>
                                 </th>
                                 <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Product Code">Product Code</div>
@@ -51,9 +55,9 @@
                                                         <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
                                                 </div>
                                         </th>
-                                        <td>
-                                                <div class='slds-resizable' style="width:300px">
-                                                        {x.Product_Name__c}
+                                        <td role="gridcell" class="slds-cell-edit cellContainer" tabindex="-1" data-aura-rendered-by="1299:0">
+                                                <div class='slds-resizable' style="width:300px" >
+                                                         {x.Product_Name__c}
                                                 </div>
                                         </td>
                                         <td>
@@ -93,7 +97,11 @@
                         </template>
                         
                 </tbody>
-        
+                 <template if:true={loading}>
+                        <div class="exampleHolder">
+                                <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+                            </div>
+                </template> 
                 <!-- <div style="height:400px" class="slds-scrollable_y"  onscroll={handleScroll} data-id="outter">
                         <template for:each={salesDocs} for:item="x" for:index="index">
                                 <div class='box' key={x.Id}>
@@ -103,7 +111,7 @@
         
                 </div> -->
             </table>
+        <!-- </template> -->
         </div>
-        </template>
     
 </template>
