@@ -14,45 +14,45 @@
                 </div>
         </template>
         <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_resizable-cols" aria-labelledby="element-with-table-label other-element-with-table-label" role="grid">
                 <thead>
                         <tr class="slds-line-height_reset">
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Sales Doc">Sales Doc</div>
                                 </th>
-                                <th scope="col">
-                                        <div class="slds-truncate" title="Product Name">Product Name</div>
+                                <th scope="col" class="slds-is-resizable slds-cell_action-mode" style="width:300px">
+                                        <div style="width:300px"  class='slds-resizable' title="Product Name">Product Name</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Product Code">Product Code</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Qty">Quantity</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Unit Price">Unit Price</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Current Cost">Current Cost</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Invoice Date">Invoice Date</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Reorder">Reorder</div>
                                 </th>
                         </tr>
                 </thead>
                 <tbody>
                         <template for:each={salesDocs} for:item="x" for:index="index">
-                                <tr class="slds-hint-parent" key={x.Id}>
+                                <tr class="slds-hint-parent slds-resizable" key={x.Id}>
                                         <th data-lable={x.Sales_Document__r.Name}>
-                                                <div class="slds-truncate">
+                                                <div class="slds-truncate slds-resizable">
                                                         <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
                                                 </div>
                                         </th>
                                         <td>
-                                                <div class="slds-truncate">
+                                                <div class='slds-resizable' style="width:300px">
                                                         {x.Product_Name__c}
                                                 </div>
                                         </td>
