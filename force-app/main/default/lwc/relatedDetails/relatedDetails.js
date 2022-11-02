@@ -1,13 +1,18 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
-import createOp from '@salesforce/apex/getSalesDetails.createOp'
+import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import {isIn} from 'c/utilityHelper';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
     loading = true;
     loadAgain = true;
     newId;
+    //search variables
+    searchTerm;
+    searching = false; 
+    @track copyProducts = []; 
     @track selectedProducts = []; 
     //scroll height; 
     sHeight 
@@ -32,6 +37,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
         },
     ];
     @track salesDocs = [];
+    
     rowLimit = 25;
     rowOffSet = 0; 
 
@@ -58,10 +64,13 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                     })
                     let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
                     let updates = [...this.salesDocs, ...sorted];
-                    this.salesDocs = updates; 
+                    this.salesDocs = updates;
+                    //make a copy for searching the table; 
+                    this.copyProducts = updates;  
                     this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
                     this.loading = false; 
                     this.loadAgain = true;
+                    //console.log(JSON.stringify(this.salesDocs)); 
                 }else{
                     console.log('all done');
                     this.loading = false;
@@ -85,6 +94,26 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
               
         //    }) 
             
+        }
+        //search
+        handleKeyUp(evt) {
+            window.clearTimeout(this.delayedTimeout)
+            const queryTerm = evt.target.value;  
+            
+            this.delayedTimeout = setTimeout(()=>{
+                this.searching = true; 
+                this.searchTerm = queryTerm; 
+                console.log(this.searchTerm, this.searchTerm.length)
+                this.searchTerm.length >= 3 ? this.handleSearch(this.searchTerm) : this.salesDocs = [...this.copyProducts]; 
+            }, 1000)
+        } 
+
+        handleSearch(term){
+            console.log(2, this.searchTerm)
+            let filtered = isIn(this.salesDocs, this.searchTerm); 
+            console.log(filtered.length, filtered)
+            this.salesDocs = filtered.length > 0 ? filtered : this.salesDocs; 
+            this.searching = false; 
         }
 
          handleRowClick(e){
