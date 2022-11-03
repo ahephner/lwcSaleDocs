@@ -101,21 +101,33 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             const queryTerm = evt.target.value;  
             
             this.delayedTimeout = setTimeout(()=>{
+                console.log(queryTerm.length)
                 this.searching = true; 
+                this.salesDocs = [...this.copyProducts]
                 this.searchTerm = queryTerm; 
-                console.log(this.searchTerm, this.searchTerm.length)
-                this.searchTerm.length >= 3 ? this.handleSearch(this.searchTerm) : this.salesDocs = [...this.copyProducts]; 
+                this.searchTerm.length >= 3 ? this.handleSearch(this.searchTerm)  : this.handleZeroSearch();
+                //this.salesDocs = [...this.copyProducts]  
             }, 1000)
         } 
 
         handleSearch(term){
-            console.log(2, this.searchTerm)
+            
             let filtered = isIn(this.salesDocs, this.searchTerm); 
-            console.log(filtered.length, filtered)
-            this.salesDocs = filtered.length > 0 ? filtered : this.salesDocs; 
+            
+            this.salesDocs = filtered.length > 0 ? filtered : false; 
             this.searching = false; 
         }
 
+        handleZeroSearch(){
+            this.salesDocs = [...this.copyProducts];
+            this.searching = false; 
+        }
+        //This fires on the button being cleared on the input search
+        handleClear(event){
+            if(!event.target.value.length){
+                this.handleZeroSearch(); 
+            }
+        }
          handleRowClick(e){
             let pc = e.target.name; 
             let index = this.salesDocs.findIndex(x => x.Product_Code__c === pc);
