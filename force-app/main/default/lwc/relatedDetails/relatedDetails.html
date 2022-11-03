@@ -56,13 +56,15 @@
                                 <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Invoice Date">Invoice Date</div>
                                 </th>
-                                <th scope="col" class="slds-is-resizable">
+                                <th scope="col" class="slds-is-resizable topTable">
                                         <div class="slds-truncate" title="Reorder">Reorder</div>
                                 </th>
+                                
                         </tr>
                 </thead>
                 <tbody>
 <!-- Table body with spinner here -->
+<!-- <div class="topTable"></div> -->
                         <template if:true={searching}>
                                 <div class="exampleHolder">
                                         <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
@@ -112,8 +114,9 @@
                                                 </td>
                                                 <td>
                                                         <div class="slds-truncate">
-                                                                <lightning-button variant={x.rowVariant} label={x.btnName} 
-                                                                title={x.btnName} onclick={handleRowClick} name={x.Product_Code__c} 
+                                                                <lightning-button variant={x.rowVariant} label={x.btnName}
+                                                                data-target={x.Id} 
+                                                                title={x.btnName} onclick={handleRowClick} name={x.Id} 
                                                                 ></lightning-button>
                                                         </div>
                                                 </td>

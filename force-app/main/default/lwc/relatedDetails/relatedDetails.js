@@ -99,10 +99,9 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
         handleKeyUp(evt) {
             window.clearTimeout(this.delayedTimeout)
             const queryTerm = evt.target.value;  
-            
+            this.searching = true; 
+
             this.delayedTimeout = setTimeout(()=>{
-                console.log(queryTerm.length)
-                this.searching = true; 
                 this.salesDocs = [...this.copyProducts]
                 this.searchTerm = queryTerm; 
                 this.searchTerm.length >= 3 ? this.handleSearch(this.searchTerm)  : this.handleZeroSearch();
@@ -115,6 +114,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             let filtered = isIn(this.salesDocs, this.searchTerm); 
             
             this.salesDocs = filtered.length > 0 ? filtered : false; 
+            this.scrollUp(); 
             this.searching = false; 
         }
 
@@ -128,11 +128,20 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                 this.handleZeroSearch(); 
             }
         }
+        scrollUp(){
+            let topDiv = this.template.querySelector('.topTable');
+            let containerChoosen = this.template.querySelector('.topTable');
+            containerChoosen.scrollIntoView();
+            console.log('scroll up');
+        }
          handleRowClick(e){
+
             let pc = e.target.name; 
-            let index = this.salesDocs.findIndex(x => x.Product_Code__c === pc);
-            let newProd = this.selectedProducts.findIndex(x => x.code === pc);                  
-            
+            //find index by ID value of selectable products
+            let index = this.salesDocs.findIndex(x => x.Id === pc);
+            //See if selected product has been 
+            let newProd = this.selectedProducts.findIndex(x => x.code === this.salesDocs[index].Product_Code__c);                  
+            let button = this.salesDocs[index].rowVariant; 
                 if(newProd<0){
                     this.selectedProducts = [
                         ...this.selectedProducts, {
@@ -144,13 +153,17 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                     this.canOrder = true; 
                     this.salesDocs[index].rowVariant = 'success';
                     this.salesDocs[index].btnName = 'added';
-                }else{
+                    //if they previously selected the product and want to take it out
+                }else if(newProd >=0 && button === 'success'){
                     let removeIndex = this.selectedProducts.findIndex(x => x.code === pc);
                     this.selectedProducts.splice(removeIndex, 1);
                     this.selectedProducts.length > 0 ? this.canOrder = true: this.canOrder = false;  
                     this.salesDocs[index].rowVariant = 'brand';
-                    this.salesDocs[index].btnName = 'Reorder'; 
+                    this.salesDocs[index].btnName = 'Reorder';  
+                }else if(newProd >=0){
+                    console.log('already there')
                 }
+                console.log(JSON.stringify(this.selectedProducts))
             }
 
        async handleScroll(evt){
