@@ -1,99 +1,138 @@
 <template>
-        <template if:true={loading}>
-                <div class="exampleHolder">
-                        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
-                    </div>
-        </template>
+       
         
-        <template if:false={loading}>
-        <template if:true={canOrder}>
-                <div class="orderBox">
-                        <lightning-button variant='brand' label='Make Order' 
-                        title='Make Order' onclick={makeOrder} 
-                        ></lightning-button>
+        <div class="searchBar slds-grid">
+                <div class="slds-col">
+                        <template if:true={canOrder}>
+                                <div class="orderBox">
+                                        <lightning-button variant='brand' label='Make Order' 
+                                        title='Make Order' onclick={makeOrder} 
+                                        ></lightning-button>
+                                </div>
+                        </template>
                 </div>
-        </template>
+
+                <div class="slds-col" onkeyup={handleKeyUp}>
+                        <lightning-input
+                            name="enter-search"
+                            label=""
+                            placeholder="Search Here"
+                            type="search"
+                            oncommit={handleClear}
+                        ></lightning-input>
+                </div>
+        </div>
+       
         <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
+                
+        <!-- <template if:false={loading}> -->
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_resizable-cols" aria-labelledby="element-with-table-label other-element-with-table-label" role="grid">
                 <thead>
                         <tr class="slds-line-height_reset">
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Sales Doc">Sales Doc</div>
                                 </th>
-                                <th scope="col">
-                                        <div class="slds-truncate" title="Product Name">Product Name</div>
+                                <th scope="col" class="slds-is-resizable slds-cell_action-mode" style="width:300px">
+                                        <span class="slds-truncate" title="Product Name">Product Name</span>
+                                        <div class="slds-resizable">
+                                                <input type="range" aria-label="Name column width" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-540" max="1000" min="20" tabindex="0" />
+                                                <span class="slds-resizable__handle">
+                                                  <span class="slds-resizable__divider"></span>
+                                                </span>
+                                              </div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Product Code">Product Code</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Qty">Quantity</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Unit Price">Unit Price</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Current Cost">Current Cost</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Invoice Date">Invoice Date</div>
                                 </th>
-                                <th scope="col">
+                                <th scope="col" class="slds-is-resizable topTable">
                                         <div class="slds-truncate" title="Reorder">Reorder</div>
                                 </th>
+                                
                         </tr>
                 </thead>
                 <tbody>
-                        <template for:each={salesDocs} for:item="x" for:index="index">
-                                <tr class="slds-hint-parent" key={x.Id}>
-                                        <th data-lable={x.Sales_Document__r.Name}>
-                                                <div class="slds-truncate">
-                                                        <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
-                                                </div>
-                                        </th>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        {x.Product_Name__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        {x.Product_Code__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        {x.Quantity__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        ${x.Unit_Price__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        ${x.Product__r.Product_Cost__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        {x.Doc_Date__c}
-                                                </div>
-                                        </td>
-                                        <td>
-                                                <div class="slds-truncate">
-                                                        <lightning-button variant={x.rowVariant} label={x.btnName} 
-                                                        title={x.btnName} onclick={handleRowClick} name={x.Product_Code__c} 
-                                                        ></lightning-button>
-                                                </div>
-                                        </td>
-                                </tr>
-                                
+<!-- Table body with spinner here -->
+<!-- <div class="topTable"></div> -->
+                        <template if:true={searching}>
+                                <div class="exampleHolder">
+                                        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+                                    </div>
                         </template>
+                        <template if:false={searching}>
+                                <template if:false={salesDocs}>
+                                        <p>nothing found...</p>
+                                </template>
+                              <template if:true={salesDocs}>  
+                                <template for:each={salesDocs} for:item="x" for:index="index">
+                                        <tr class="slds-hint-parent slds-resizable" key={x.Id}>
+                                                <th data-lable={x.Sales_Document__r.Name}>
+                                                        <div class="slds-truncate slds-resizable">
+                                                                <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
+                                                        </div>
+                                                </th>
+                                                <td role="gridcell" class="slds-cell-edit cellContainer" tabindex="-1" data-aura-rendered-by="1299:0">
+                                                        <div class='slds-resizable' style="width:300px" >
+                                                                 {x.Product_Name__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                {x.Product_Code__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                {x.Quantity__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                ${x.Unit_Price__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                ${x.Product__r.Product_Cost__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                {x.Doc_Date__c}
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                        <div class="slds-truncate">
+                                                                <lightning-button variant={x.rowVariant} label={x.btnName}
+                                                                data-target={x.Id} 
+                                                                title={x.btnName} onclick={handleRowClick} name={x.Id} 
+                                                                ></lightning-button>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                        
+                                </template>
+                          </template>
+                        </template>
+
                         
                 </tbody>
-        
+                 <template if:true={loading}>
+                        <div class="exampleHolder">
+                                <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+                            </div>
+                </template> 
                 <!-- <div style="height:400px" class="slds-scrollable_y"  onscroll={handleScroll} data-id="outter">
                         <template for:each={salesDocs} for:item="x" for:index="index">
                                 <div class='box' key={x.Id}>
@@ -103,7 +142,7 @@
         
                 </div> -->
             </table>
+        <!-- </template> -->
         </div>
-        </template>
     
 </template>
