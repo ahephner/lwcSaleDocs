@@ -1,7 +1,11 @@
 <template>
-       
-        
-        <div class="searchBar slds-grid">
+       <template if:true={buildingOrder}>
+                <div class="exampleHolder">
+                        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+                </div>
+       </template>
+        <template if:false={buildingOrder}>
+        <div class="searchBar slds-grid ">
                 <div class="slds-col">
                         <template if:true={canOrder}>
                                 <div class="orderBox">
@@ -26,21 +30,31 @@
         <div style="height:400px" class="slds-scrollable"  onscroll={handleScroll} data-id="outter"> 
                 
         <!-- <template if:false={loading}> -->
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_resizable-cols" aria-labelledby="element-with-table-label other-element-with-table-label" role="grid">
+            <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols" aria-labelledby="element-with-table-label other-element-with-table-label" role="grid">
                 <thead>
                         <tr class="slds-line-height_reset">
                                 <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Sales Doc">Sales Doc</div>
                                 </th>
-                                <th scope="col" class="slds-is-resizable slds-cell_action-mode" style="width:300px">
-                                        <span class="slds-truncate" title="Product Name">Product Name</span>
+                                <th aria-label="Account Name" aria-sort="none" class="slds-is-resizable slds-is-sortable slds-cell_action-mode" scope="col" style="width:200px">
+                                        <a class="slds-th__action slds-text-link_reset" href="#" role="button" tabindex="0">
+                                          <span class="slds-assistive-text">Sort by: </span>
+                                          <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                            <span class="slds-truncate" title="Product Name">Product Name</span>
+                                            <span class="slds-icon_container slds-icon-utility-arrowdown">
+                                              <svg class="slds-icon slds-icon-text-default slds-is-sortable__icon " aria-hidden="true">
+                                                <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#arrowdown"></use>
+                                              </svg>
+                                            </span>
+                                          </div>
+                                        </a>
                                         <div class="slds-resizable">
-                                                <input type="range" aria-label="Name column width" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-540" max="1000" min="20" tabindex="0" />
-                                                <span class="slds-resizable__handle">
-                                                  <span class="slds-resizable__divider"></span>
-                                                </span>
-                                              </div>
-                                </th>
+                                          <input type="range" aria-label="Account Name column width" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-541" max="1000" min="20" tabindex="0" />
+                                          <span class="slds-resizable__handle" onmousedown={calculateWidth} ondrag={setNewWidth}>
+                                            <span class="slds-resizable__divider"></span>
+                                          </span>
+                                        </div>
+                                      </th>
                                 <th scope="col" class="slds-is-resizable">
                                         <div class="slds-truncate" title="Product Code">Product Code</div>
                                 </th>
@@ -82,11 +96,10 @@
                                                                 <a href={x.nameURL} target="_blank">{x.Sales_Document__r.Name}</a>
                                                         </div>
                                                 </th>
-                                                <td role="gridcell" class="slds-cell-edit cellContainer" tabindex="-1" data-aura-rendered-by="1299:0">
-                                                        <div class='slds-resizable' style="width:300px" >
-                                                                 {x.Product_Name__c}
-                                                        </div>
-                                                </td>
+                                                <td class="slds-cell_action-mode" role="gridcell">
+                                                        <div class="slds-truncate" title={x.Product_Name__c}>{x.Product_Name__c}</div>
+                                                      </td>
+
                                                 <td>
                                                         <div class="slds-truncate">
                                                                 {x.Product_Code__c}
@@ -113,12 +126,33 @@
                                                         </div>
                                                 </td>
                                                 <td>
+                                                <!--Allow input from Rep  -->
+                                                   <template if:false={x.showCount}>
                                                         <div class="slds-truncate">
                                                                 <lightning-button variant={x.rowVariant} label={x.btnName}
                                                                 data-target={x.Id} 
                                                                 title={x.btnName} onclick={handleRowClick} name={x.Id} 
                                                                 ></lightning-button>
                                                         </div>
+                                                   </template>
+                                                   <template if:true={x.showCount}>
+                                                        <div class="slds-truncate">
+                                                                <div class="countBox">
+                                                                        <h4>Qty: {x.visAmount}</h4>
+                                                                </div>
+                                                            <div class="butBox">
+                                                                <lightning-button-group>
+                                                                    <lightning-button-icon variant="base" size="small" icon-name="utility:dash" 
+                                                                    alternative-text="subtract" name={x.Product_Code__c} onclick={handleMinus}></lightning-button-icon>
+                                                                    <lightning-button-icon variant="base" size="small" icon-name="utility:add" 
+                                                                    alternative-text="add" name={x.Product_Code__c} onclick={handleAdd}></lightning-button-icon>
+                                                                    <lightning-button-icon variant="base" size="small" icon-name="utility:close" 
+                                                                    alternative-text="add" name={x.Product_Code__c} onclick={closeAdd}></lightning-button-icon>
+                                                                </lightning-button-group>
+                                                            </div>
+                                                        </div>
+                                                   </template>
+
                                                 </td>
                                         </tr>
                                         
@@ -144,5 +178,5 @@
             </table>
         <!-- </template> -->
         </div>
-    
+</template>
 </template>
