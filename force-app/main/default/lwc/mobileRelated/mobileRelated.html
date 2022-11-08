@@ -1,17 +1,72 @@
 <template>
+    <lightning-button variant="base" label="switch views" title="titleName" onclick={switchView}></lightning-button>
     <lightning-card  title="Sales Docs">
-        <div class="slds-box">
-            <div class="slds-scrollable_y" style="height:40rem; width:100%">
-                <lightning-layout multiple-rows="true">
-                    
-                </lightning-layout>
-                <div class="slds-grid">
-                    <div class="slds-col slds-size_1-of-1">
-                        <h4>SO970425</h4>
+
+        <template if:true={demo}>
+            <div class='slds-scrollable_y' style='height:40rem; width:100%'>
+             <lightning-layout multiple-rows="true">
+                <template for:each={salesDocs} for:item='item'>
+                    <lightning-layout-item size="12" key={item.Id} class="slds-box slds-p-around_none 
+                    slds-m-top_x-small  slds-m-horizontal_none">
+                    <div class='slds-grid'>
+                        <div class='slds-col slds-size_1-of-2 slds-m-left_x-small'>
+                            <lightning-input id={item.Id} value={item.docName} type='text' label='Name' readonly></lightning-input>
+                            <lightning-input label='Product Name' name={item.Id} value={item.Product_Name__c} 
+                            type='text' readonly></lightning-input>
+                            <lightning-input label='Code' name={item.Id} value={item.Product_Code__c} readonly></lightning-input>
+                        </div>
+                        <div class='slds-col slds-size_1-of-2 slds-m-left_x-small'>
+                            <lightning-input name={item.Id} value={item.Quantity__c} label='Qty' 
+                            type='number' readonly></lightning-input>
+                            <lightning-input type="number"  label="Unit Price" 
+                            name={item.Id} value={item.Unit_Price__c} readonly></lightning-input>
+
+                            <lightning-input  label="Current Cost" name={item.Id} 
+                            value={item.Product__r.Product_Cost__c} readonly></lightning-input>
+                        </div>   
                     </div>
-                </div>
-            </div>
+                    </lightning-layout-item> 
+                </template>
+            </lightning-layout>
         </div>
-        
+            <div class='slds-m-top_small slds-align_absolute-center'>
+                <lightning-button variant="destructive" label="Go Back" title="titleName" onclick={goBack}></lightning-button>
+                <lightning-button variant="success" label="Save" title="titleName" onclick={handleSaveMobile}></lightning-button>
+            </div>
+        </template>
+        <template if:false={demo}>
+        <div class='slds-scrollable_y cardClass' style='height:40rem; width:100%'>
+            <lightning-layout multiple-rows="true">
+                <span class="slds-m-bottom_medium"></span>
+                <template if:false={loading} for:each={salesDocs} for:item='item'>
+                    <lightning-layout-item size="12" key={item.Id} class="slds-box slds-p-around_none 
+                                            slds-m-horizontal_none pcCard" 
+                                            name={item.docName}>
+
+                        <div class='slds-grid'>
+                            <div class='slds-col slds-size_1-of-2 slds-m-left_x-small slds-m-top_small'>
+                                <!-- <h2 class="slds-text-heading_medium slds-m-bottom_medium"></h2> -->
+                                <p class="prodCode slds-p-top_xxx-small">{item.Product_Name__c}</p>
+                                    <p>{item.Product_Code__c}</p> 
+                                        <ul class="list">
+                                            <li><span class="leftSide">Date:</span> <span class="rightSide">{item.Doc_Date__c}</span></li>
+                                            <li><span class="leftSide">Qty:</span> <span class="rightSide">{item.Quantity__c}</span></li>
+                                            <li><span class="leftSide">Unit Price:</span><span class="rightSide">${item.Unit_Price__c}</span></li>
+                                            <li><span class="leftSide">Current Cost:</span> <span class="rightSide"><span class={item.color}>${item.Product__r.Product_Cost__c}</span></span></li>
+
+                                        </ul>      
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-align_absolute-center removeBtn">
+                                    <lightning-button-icon icon-name="action:close" variant="border-filled"
+                                    name={item.Id} onclick={removeRow}></lightning-button-icon>
+                                </div>
+                            </div>
+                        </div> 
+        </lightning-layout-item>
+                </template>
+            </lightning-layout>
+        </div>
+    </template>
     </lightning-card>
 </template>
