@@ -11,7 +11,7 @@ export default class MobileRelated extends LightningElement {
     loading = true;
     loadAgain = true;
     newId;
-    demo = true
+    
     //search variables
     searchTerm;
     searching = false; 
@@ -25,16 +25,6 @@ export default class MobileRelated extends LightningElement {
     
     rowLimit = 25;
     rowOffSet = 0; 
-
-    switchView(){
-        if(this.demo){
-            this.demo = false;
-        }else{
-            this.demo = true
-        }
-        console.log(this.demo);
-        
-    }
 
     connectedCallback(){
         this.loadData(); 
