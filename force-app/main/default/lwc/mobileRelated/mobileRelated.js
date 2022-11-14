@@ -4,11 +4,11 @@ import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
 import {isIn} from 'c/utilityHelper';
 
-export default class MobileRelated extends LightningElement {
+export default class MobileRelated extends NavigationMixin(LightningElement){
     @api prop1; 
     @api recordId;
     @api totalNumberOfRows;
-    loading = true;
+    loadingOrder = true;
     loadAgain = true;
     newId;
     
@@ -28,7 +28,7 @@ export default class MobileRelated extends LightningElement {
 
     connectedCallback(){
         this.loadData(); 
-        this.loading = false; 
+        this.loadingOrder = false; 
     }
 
         loadData(){
@@ -39,13 +39,17 @@ export default class MobileRelated extends LightningElement {
                     let nameURL; 
                     let docName;  
                     let rowVariant; 
-                    let btnName; 
+                    let btnName;
+                    let showCount;
+                    let visAmount;  
                     records = res.map(row=>{
                         nameURL =  `/${row.Sales_Document__c}`;
                         docName = row.Sales_Document__r.Name;
                         btnName = 'Reorder';
                         rowVariant = 'brand';
-                        return{...row, nameURL, docName, rowVariant, btnName}
+                        showCount = false;
+                        visAmount = row.Quantity__c;
+                        return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount}
                     })
                     let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
                     let updates = [...this.salesDocs, ...sorted];
@@ -136,8 +140,7 @@ export default class MobileRelated extends LightningElement {
                     ]
                     //show user prod selected
                     this.canOrder = true; 
-                    this.salesDocs[index].rowVariant = 'success';
-                    this.salesDocs[index].btnName = 'added';
+                    this.salesDocs[index].showCount = true;
                     //if they previously selected the product and want to take it out
                 }else if(newProd >=0 && button === 'success'){
                     let removeIndex = this.selectedProducts.findIndex(x => x.code === pc);
@@ -160,12 +163,45 @@ export default class MobileRelated extends LightningElement {
             }
         
         }
-
+//BUTTONS ON THE TABLE ADD OR SUBTRACT QTY     
+        handleAdd(evt){
+            let index = this.selectedProducts.findIndex(x=>x.code === evt.target.name);
+            let tableIndex = this.salesDocs.findIndex(x => x.Product_Code__c === evt.target.name);
+            this.selectedProducts[index].quantity ++; 
+            this.salesDocs[tableIndex].visAmount ++;
+            console.log('new qty ' , this.selectedProducts[index].quantity);
+            
+        }
+//WHEN THE VALUE IS 0 RESET THE FIELD AND CLOSE THE COUNTER    
+        handleMinus(evt){
+            let index = this.selectedProducts.findIndex(x=>x.code === evt.target.name);
+            let tableIndex = this.salesDocs.findIndex(x => x.Product_Code__c === evt.target.name); 
+            if(this.selectedProducts[index].quantity >= 1){
+                this.selectedProducts[index].quantity --;
+                this.salesDocs[tableIndex].visAmount --;  
+                this.salesDocs[tableIndex].visAmount === 0 ? this.closeAdd(evt) : '';
+            }// }else if(this.selectedProducts[index].quantity === 0){
+            //     this.salesDocs[tableIndex].showCount = false;
+            //     this.salesDocs[tableIndex].visAmount = this.salesDocs[tableIndex].Quantity__c
+            //     this.selectedProducts.splice(index, 1);
+            //     this.selectedProducts.length > 0 ? this.canOrder = true: this.canOrder = false; 
+            // }
+        }
+//CLOSE THE INDIVIDUAL COUNTER
+        closeAdd(evt){
+            console.log(1, evt)
+            let index = this.selectedProducts.findIndex(x=>x.code === evt.target.name);
+            let tableIndex = this.salesDocs.findIndex(x => x.Product_Code__c === evt.target.name);
+                this.salesDocs[tableIndex].showCount = false;
+                this.salesDocs[tableIndex].visAmount = this.salesDocs[tableIndex].Quantity__c
+                this.selectedProducts.splice(index, 1);
+                this.selectedProducts.length > 0 ? this.canOrder = true: this.canOrder = false;
+        }
         makeOrder(){
-            this.loading = true; 
+            this.loadingOrder = true; 
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
-                this.loading = false; 
+                this.loadingOrder = false; 
                 this.newId = res
                 this.naviToOpp(this.newId); 
             }).catch(err=>{
