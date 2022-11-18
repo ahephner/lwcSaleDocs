@@ -23,7 +23,7 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
     
     @track salesDocs = [];
     
-    rowLimit = 25;
+    rowLimit = 30;
     rowOffSet = 0; 
 
     connectedCallback(){
@@ -59,6 +59,7 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
                     this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
                     this.loading = false; 
                     this.loadAgain = true;
+                    console.log(this.sHeight); 
                     //console.log(JSON.stringify(this.salesDocs)); 
                 }else{
                     console.log('all done');
@@ -153,11 +154,15 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
                 }
                 console.log(JSON.stringify(this.selectedProducts))
             }
+            scrollTest(){
+                alert(this.template.querySelector('.cardClass').scrollTop)
+            }
 
        async handleScroll(evt){
-            let btm = evt.target.scrollTop/this.sHeight
-            
-            if(btm >= .8 && this.loadAgain){
+            // let btm = evt.target.scrollTop/this.sHeight
+            let height = this.template.querySelector('.cardClass');
+            let calc = height.scrollTop / height.scrollHeight; 
+            if(calc >= .8 && this.loadAgain){
                 console.log('in load more'); 
                 this.loadMoreData(); 
             }
