@@ -2,6 +2,7 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import fallBack from '@salesforce/apex/getSalesDetails.fallBack';
 import {isIn} from 'c/utilityHelper';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
@@ -113,16 +114,62 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                 //this.salesDocs = [...this.copyProducts]  
             }, 1000)
         } 
-
-        handleSearch(term){
+//check if the searched for products are in the loaded lists. If not make a server call to look for the searched product or code
+//if the additional searched for product is not returned then set the sales doc to false to display no results screen. 
+        
+    async handleSearch(term){
             
-            let filtered = isIn(this.salesDocs, this.searchTerm); 
-            
-            this.salesDocs = filtered.length > 0 ? filtered : false; 
-            this.scrollUp(); 
+            let filtered = await isIn(this.salesDocs, this.searchTerm); 
+            if(filtered.length>0){
+                this.salesDocs = filtered
+                this.scrollUp(); 
+            }else if(filtered.length === 0){
+                console.log('empty search')
+                let fb = await this.checkNotIn(this.searchTerm);
+                
+            }else{
+                this.salesDocs = false; 
+            }
             this.searching = false; 
         }
-
+        checkNotIn(keyword){
+            
+             return fallBack({recordId: this.recordId, term: keyword})
+                    .then((res)=>{
+                        if(res){
+                            let records
+                            let nameURL; 
+                            let docName;  
+                            let rowVariant; 
+                            let btnName; 
+                            let showCount; 
+                            let visAmount; 
+                            records = res.map(row=>{
+                                nameURL =  `/${row.Sales_Document__c}`;
+                                docName = row.Sales_Document__r.Name;
+                                btnName = 'Reorder';
+                                rowVariant = 'brand';
+                                showCount = false; 
+                                visAmount = row.Quantity__c
+                                return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount}
+                            })
+                            let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
+                            this.salesDocs  = [ ...sorted];
+                            
+                            
+                            //make a copy for searching the table; 
+                            //this.copyProducts = updates;  
+                            this.sHeight = this.template.querySelector('[data-id="outter"]').scrollHeight;
+                            this.loading = false; 
+                            this.loadAgain = true;
+                            this.scrollUp();
+                            //console.log(JSON.stringify(this.salesDocs)); 
+                        }else{
+                            this.salesDocs = false; 
+                        }
+                    })
+       
+        }
         handleZeroSearch(){
             this.salesDocs = [...this.copyProducts];
             this.searching = false; 
