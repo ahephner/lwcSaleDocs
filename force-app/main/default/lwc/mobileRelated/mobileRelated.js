@@ -104,7 +104,7 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
             let filtered = isIn(this.salesDocs, this.searchTerm); 
             
             this.salesDocs = filtered.length > 0 ? filtered : false; 
-            this.scrollUp(); 
+            //this.scrollUp(); 
             this.searching = false; 
         }
 

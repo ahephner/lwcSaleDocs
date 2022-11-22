@@ -2,6 +2,15 @@
 
     <lightning-card>
         <template if:false={loadingOrder}>
+            <div class="slds-col" onkeyup={handleKeyUp}>
+                <lightning-input
+                    name="enter-search"
+                    label=""
+                    placeholder="Search Here"
+                    type="search"
+                    oncommit={handleClear}
+                ></lightning-input>
+        </div>
             <div class='slds-scrollable_y cardClass' style='height:40rem; width:100%' onscroll={handleScroll} data-id="outter">
                 <div class="slds-grid makeOrder">
                     <h2 slot="title" class="slds-col slds-size_1-of-2 slds-text-heading_small slds-truncate">Sales Docs</h2>
