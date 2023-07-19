@@ -20,7 +20,7 @@ public class test_getSalesDetails {
         Id pricebookId = Test.getStandardPricebookId();
         //sales doc
         Sales_Document__c head = new Sales_Document__c(name = 'test name', customer__c = cust.id, Doc_Type__c = 'Invoice', 
-                                                       Sales_Doc_Num__c = '12345',Sales_Rep__c= sr.Id,
+                                                       Sales_Doc_Num__c = '12345',Sales_Rep__c= sr.Id,Number_of_Payments__c =1,
                                                        Doc_Date__c = myDate, Doc_Amount__c=1.00,Payment_Terms__c = 'SEE SPLIT TERMS' );
 	
         insert head;
@@ -40,6 +40,7 @@ public class test_getSalesDetails {
         integer off = 0;
         test.startTest();
         	list<Sales_Doc_Detail__c> details = getSalesDetails.getDetails(limits, off, cust.Id);
+        	list<Sales_Doc_Detail__c> searchRes = getSalesDetails.fallBack(cust.id, p.name);
         test.stopTest(); 
     }
     
@@ -81,14 +82,14 @@ public class test_getSalesDetails {
                                                  unitprice=4, IsActive = True, UseStandardPrice=False);
         insert rakepbe;  
  //zero margin
-        product2 shovel = new product2(name ='shovel',ProductCode='AT12', IsActive= True, Agency_Pricing__c=false); 
+        product2 shovel = new product2(name ='shovel',ProductCode='AT12', IsActive= True, Agency_Pricing__c=false, Product_Category__c = 'Packaged Product'); 
         insert shovel; 
         
         PricebookEntry shovelpbe = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=shovel.id,
                                                  unitprice=4, IsActive = True, UseStandardPrice=False);
         insert shovelpbe; 
 //shipping charge
-        product2 ship = new product2(name='ATS SHIPPING', IsActive=True);
+        product2 ship = new product2(name='ATS SHIPPING', ProductCode= 'ATS-SHIPPING', IsActive=True, Product_Category__c='ATS Shipping');
         insert ship; 
         
         PricebookEntry shipPBE = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=ship.id,
@@ -137,7 +138,7 @@ public class test_getSalesDetails {
         
         Test.startTest();
 			getSalesDetails.createOp(cust.Id, wrapList);
-
+			getSalesDetails.eopOp(cust.Id, wrapList);
          test.stopTest();   
 
     }

@@ -2,6 +2,7 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
 
 export default class MobileRelated extends NavigationMixin(LightningElement){
@@ -207,6 +208,19 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
                 this.loadingOrder = false; 
+                this.newId = res
+                this.naviToOpp(this.newId); 
+            }).catch(err=>{
+                console.log(err);
+            })
+            
+        }
+
+        eopOrder(){
+            this.loadingOrder = true; 
+            eopOp({accId: this.recordId, prod: this.selectedProducts})
+            .then(res=>{
+                this.loading = false; 
                 this.newId = res
                 this.naviToOpp(this.newId); 
             }).catch(err=>{
