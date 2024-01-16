@@ -2,7 +2,7 @@
 
     <lightning-card>
         <template if:false={loadingOrder}>
-            <div class="slds-col" onkeyup={handleKeyUp}>
+            <!-- <div class="slds-col" onkeyup={handleKeyUp}>
                 <lightning-input
                     name="enter-search"
                     label=""
@@ -10,15 +10,26 @@
                     type="search"
                     oncommit={handleClear}
                 ></lightning-input>
-        </div>
+        </div> -->
             <div class='slds-scrollable_y cardClass' style='height:40rem; width:100%' onscroll={handleScroll} data-id="outter">
                 <div class="slds-grid makeOrder">
-                    <h2 slot="title" class="slds-col slds-size_1-of-2 slds-text-heading_small slds-truncate">Sales Docs</h2>
+                    <h4 slot="title" class="slds-col slds-size_1-of-3 slds-text-heading_small slds-truncate">Sales Docs</h4>
                     <template if:true={canOrder}>
-                        <div class="slds-col slds-size_1-of-2 slds-m-left_x-small slds-m-bottom_x-small">
-                            <lightning-button variant='brand' label='Make Order' 
-                            title='Make Order' onclick={makeOrder} 
-                            ></lightning-button>
+                        <div class="slds-col slds-size_1-of-3  btn">
+                            <figure class="iconContainer">
+                                <lightning-icon icon-name="action:new" size="x-small" onclick={makeOrder}
+                                class='slds-icon_container_circle ' 
+                                alternative-text="make order" title="make order"></lightning-icon>
+                                <figcaption class='slds-p-top_x-small slds-text-body_small icon-figcaption'>Make Order</figcaption>
+                            </figure>                    
+                        </div> 
+                        <div class='slds-col slds-size_1-of-3  btn'>
+                            <figure class='iconContainer'>
+                                <lightning-icon icon-name="action:edit" size="x-small" onclick={eopOrder}
+                                class='slds-icon_container_circle' 
+                                alternative-text="EOP Order" title="EOP Order"></lightning-icon>
+                                <figcaption class='slds-p-top_x-small slds-text-body_small icon-figcaption'>EOP Order</figcaption>
+                            </figure>
                         </div>
                     </template>
                 </div>

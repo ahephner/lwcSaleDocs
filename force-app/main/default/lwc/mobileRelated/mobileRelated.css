@@ -1,3 +1,10 @@
+.icon-figcaption{
+    padding-right: 0.25rem;
+}
+
+.iconContainer{
+    text-align: center;
+}
 .prodCode{
     font-weight: 700;
     color: black;
@@ -118,7 +125,8 @@
       .makeOrder{
         text-align: center;
         background-color: #f4f6f9;
-        padding: 1rem;
+        /* padding: 1rem; */
+        padding-bottom: 1rem;
         border: 1px solid #d8dde6;
         width: 100vw;
         height: 12vh;
@@ -136,4 +144,8 @@
     .space{
         margin-bottom: 17%;
     }
+ 
     
+    .btn{
+        display:flex;
+    }

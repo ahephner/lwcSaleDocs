@@ -2,6 +2,7 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
@@ -175,7 +176,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
        async handleScroll(evt){
             let btm = evt.target.scrollTop/this.sHeight
             
-            if(btm >= .8 && this.loadAgain){
+            if(btm >= .75 && this.loadAgain){
                 console.log('in load more'); 
                 this.loadMoreData(); 
             }
@@ -219,7 +220,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             this.buildingOrder = true; 
             createOp({accId: this.recordId, prod: this.selectedProducts})
             .then(res=>{
-                this.loading = false; 
+                this.buildingOrder = false; 
                 this.newId = res
                 this.naviToOpp(this.newId); 
             }).catch(err=>{
@@ -227,6 +228,20 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             })
             
         }
+
+        eopOrder(){
+            this.buildingOrder = true; 
+            eopOp({accId: this.recordId, prod: this.selectedProducts})
+            .then(res=>{
+                this.buildingOrder = false; 
+                this.newId = res
+                this.naviToOpp(this.newId); 
+            }).catch(err=>{
+                console.log(err);
+            })
+            
+        }
+
 //RESIZE STUFF
         mouseStart;
         oldWidth; 
