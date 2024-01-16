@@ -176,7 +176,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
        async handleScroll(evt){
             let btm = evt.target.scrollTop/this.sHeight
             
-            if(btm >= .8 && this.loadAgain){
+            if(btm >= .75 && this.loadAgain){
                 console.log('in load more'); 
                 this.loadMoreData(); 
             }
