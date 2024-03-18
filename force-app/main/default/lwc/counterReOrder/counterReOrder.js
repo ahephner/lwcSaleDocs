@@ -1,10 +1,10 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
+import counterDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
-export default class RelatedDetails extends NavigationMixin(LightningElement){
+export default class CounterReOrder extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
     loading = true;
@@ -49,7 +49,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
     }
 
         loadData(){
-           return getDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
+           return counterDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
             .then((res)=>{
                 if(res.length>1){
                     let records
@@ -58,16 +58,19 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                     let rowVariant; 
                     let btnName; 
                     let showCount; 
-                    let visAmount; 
+                    let visAmount;
+                    let checkInfo;  
                     records = res.map(row=>{
                         nameURL =  `/${row.Sales_Document__c}`;
                         docName = row.Sales_Document__r.Name;
                         btnName = 'Reorder';
                         rowVariant = 'brand';
                         showCount = false; 
-                        visAmount = row.Quantity__c
-                        return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount}
+                        visAmount = row.Quantity__c;
+                        checkInfo = this.checkProdTwo(row); 
+                        return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount, checkInfo}
                     })
+                    console.log(records)
                     let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
                     let updates = [...this.salesDocs, ...sorted];
                     this.salesDocs = updates;
@@ -87,7 +90,21 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                 console.log('err', err); 
             })
         }
-
+        checkProdTwo(evt){
+            let cost; 
+            let margin; 
+            if(evt.Product_Std__r){
+                cost = evt.Product_Std__r.Agency_Pricing__c ? '': evt.Product_Std__r.Product_Cost__c;
+                margin = evt.Product_Std__r.Agency_Pricing__c ? '': evt.Margin__c;
+            }else if(evt.Product__r.Agency__c){
+                cost = '';
+                margin = ''; 
+            }else{
+                cost = evt.Product__r.Product_Cost__c;
+                margin = evt.Margin__c; 
+            }
+            return {cost, margin}
+        }
         loadMoreData(event){
            const currentRecord = this.salesDocs; 
            this.loading = true; 
