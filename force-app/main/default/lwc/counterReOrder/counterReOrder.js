@@ -3,7 +3,8 @@ import { NavigationMixin } from 'lightning/navigation';
 import counterDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
-import {isIn} from 'c/utilityHelper';
+import {isIn, locIsIn, repIsIn, termPlus, repLocation, allThree} from 'c/utilityHelper';
+import LightningPrompt from 'lightning/prompt';
 export default class CounterReOrder extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
@@ -12,10 +13,14 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
     newId;
     buildingOrder = false; 
     //search variables
-    searchTerm;
+    searchTerm ='';
     searching = false; 
     @track copyProducts = []; 
     @track selectedProducts = []; 
+    rep =null;
+    local=null; 
+    showRepFilter;
+    showLocationFilter; 
     //scroll height; 
     sHeight 
     canOrder = false; 
@@ -46,6 +51,7 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
     connectedCallback(){
         this.loadData(); 
         this.loading = false; 
+        this.startEventListener();
     }
 
         loadData(){
@@ -59,7 +65,9 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
                     let btnName; 
                     let showCount; 
                     let visAmount;
-                    let checkInfo;  
+                    let checkInfo; 
+                    let location;
+                    let salesRep;
                     records = res.map(row=>{
                         nameURL =  `/${row.Sales_Document__c}`;
                         docName = row.Sales_Document__r.Name;
@@ -67,8 +75,10 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
                         rowVariant = 'brand';
                         showCount = false; 
                         visAmount = row.Quantity__c;
+                        location = row.Sales_Document__r.Location_Name__c;
+                        salesRep = row.Sales_Document__r.Sales_Rep_Name__c;
                         checkInfo = this.checkProdTwo(row); 
-                        return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount, checkInfo}
+                        return{...row, nameURL, docName, rowVariant, btnName, showCount, visAmount,location, salesRep, checkInfo}
                     })
                     console.log(records)
                     let sorted = records.sort((a,b)=> Date.parse(b.Doc_Date__c) - Date.parse(a.Doc_Date__c))
@@ -127,11 +137,82 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
             this.delayedTimeout = setTimeout(()=>{
                 this.salesDocs = [...this.copyProducts]
                 this.searchTerm = queryTerm; 
-                this.searchTerm.length >= 3 ? this.handleSearch(this.searchTerm)  : this.handleZeroSearch();
+                this.searchTerm.length >= 3 ? this.handleSearchRes(this.searchTerm)  : this.handleZeroSearch();
                 //this.salesDocs = [...this.copyProducts]  
             }, 1000)
         } 
+        eventListening = false;
+        watchKeyDown = (event) => {
+            if(event.key === '`'){
+                this.handleSearchRes();
+            }
+         };
+    
+        startEventListener(){
+            if(!this.eventListening){
+                window.addEventListener('keydown', this.watchKeyDown,{
+                    once:false,
+                }) 
+                //this.eventListening = true; 
+            }
+    
+        }
+        endEventListener(){
+            this.eventListening = false; 
+            window.removeEventListener('keydown', this.watchKeyDown);
+        }
+        handleSearchRes(){
+           //all 3 //1 //2 
+           if(this.searchTerm && this.rep == null & this.local == null){
+                this.handleSearch();
+        //term and rep 
+           }else if(this.searchTerm && this.rep != null && this.local == null){
+                let filtered = termPlus(this.copyProducts, this.searchTerm, this.rep, 'salesRep'); 
+                
+                this.salesDocs = filtered.length > 0 ? filtered : false; 
+                this.scrollUp(); 
+                this.searching = false;
+        //term and location 
+           }else if(this.searchTerm && this.rep == null && this.local != null){
+                let filtered = termPlus(this.copyProducts, this.searchTerm, this.local, 'location');  
+                
+                this.salesDocs = filtered.length > 0 ? filtered : false; 
+                this.scrollUp(); 
+                this.searching = false;
+        //location and rep
+           }else if(this.searchTerm.length <3  && this.rep != null && this.local != null){
+                let filtered = repLocation(this.copyProducts, this.rep, this.local);  
+                
+                this.salesDocs = filtered.length > 0 ? filtered : false; 
+                this.scrollUp(); 
+                this.searching = false;
+        //rep only    
+           }else if(this.searchTerm.length <3  && this.rep != null && this.local == null){
+                let filtered = repIsIn(this.copyProducts, this.rep); 
 
+                this.salesDocs = filtered.length > 0 ? filtered : false; 
+                this.scrollUp(); 
+                this.searching = false;
+        //warehouse only    
+           }else if(this.searchTerm.length <3 && this.rep == null && this.local != null){
+                let filtered = locIsIn(this.copyProducts, this.local); 
+
+                this.salesDocs = filtered.length > 0 ? filtered : false; 
+                this.scrollUp(); 
+                this.searching = false; 
+                 
+        //all 3  
+           }else if(this.searchTerm && this.rep != null && this.local != null){
+            let filtered = allThree(this.copyProducts, this.searchTerm, this.rep, this.local); 
+            
+            this.salesDocs = filtered.length > 0 ? filtered : false; 
+            this.scrollUp(); 
+            this.searching = false;
+        //catchall
+           }else if(this.searchTerm.length <3 && this.rep == null && this.local == null){
+            this.salesDocs = [...this.copyProducts]; 
+           }
+        }
         handleSearch(term){
             
             let filtered = isIn(this.salesDocs, this.searchTerm); 
@@ -143,12 +224,84 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
 
         handleZeroSearch(){
             this.salesDocs = [...this.copyProducts];
+            this.searchTerm = '';
             this.searching = false; 
         }
         //This fires on the button being cleared on the input search
         handleClear(event){
             if(!event.target.value.length){
                 this.handleZeroSearch(); 
+            }
+        }
+
+        handleFilterSearch(evt){
+            let type = evt.target.name;
+            switch(type){
+                case 'location':
+                    LightningPrompt.open({
+                        message: 'Search by Location',
+                        //theme defaults to "default"
+                        label: 'Search by Location', // this is the header text
+                        defaultValue:this.local
+                    }).then((result) => {
+                        this.local = result
+                        this.searching = true; 
+                        if(this.local != null && this.local != undefined){
+                            this.showLocationFilter = true; 
+                            this.handleSearchRes(); 
+                        }else{
+                            this.local = result
+                            this.searching = false;
+                            this.showLocationFilter = false; 
+                            this.handleSearchRes();
+                            return
+                        }
+                    });
+                    break;
+                case 'rep':
+                    LightningPrompt.open({
+                        message: 'Search by Rep',
+                        //theme defaults to "default"
+                        label: 'Search by Rep', // this is the header text
+                        defaultValue:this.rep
+                    }).then((result) => {
+                        //Prompt has been closed
+                        //result is input text if OK clicked
+                        //and null if cancel was clicked
+                        this.rep = result
+                        this.searching = true; 
+                        if(this.rep != null && this.rep != undefined){
+                            this.showRepFilter = true; 
+                            this.handleSearchRes(); 
+                        }else{
+                            this.rep = result; 
+                            this.searching = false;
+                            this.showRepFilter = false;
+                            this.handleSearchRes();
+                            return
+                        }
+                    });
+                    break;
+                default:
+                    console.log('nothing found...');
+            }
+        }
+        handleFilter(item){
+            let toUpdate = item.target.name;
+            switch(toUpdate){
+                case 'location':
+                    this.location = null; 
+                    this.showLocationFilter = false;
+                    this.handleSearchRes(); 
+                    break;
+                case 'rep':
+                    this.rep = null;
+                    this.showRepFilter = false; 
+                    this.handleSearchRes()
+                    break
+                default:
+                    console.log('not clearing filters check name value in html');
+                    
             }
         }
         scrollUp(){

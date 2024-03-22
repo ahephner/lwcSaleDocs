@@ -6,7 +6,7 @@
     </template>
      <template if:false={buildingOrder}>
      <div class="searchBar slds-grid ">
-             <div class="slds-col">
+             <div class="slds-col slds-m-right_small">
                      <template if:true={canOrder}>
                              <div class="orderBox">
                                      <lightning-button variant='brand' label='Make Order' 
@@ -19,12 +19,31 @@
                              </div>
                      </template>
              </div>
-
+             <!-- <div class="slds-col slds-is-fixed">
+                <template if:true={showLocationFilter}>
+                        <p style="position:absolute;top:1rem;left:1rem;border:1px solid red;background:#f4f6f9">Location Filter:{local}</p>
+                </template>
+                <template if:true={showRepFilter}>
+                        <p style="position:absolute;top:1rem;left:1rem;border:1px solid red;background:#f4f6f9">Sales Rep Filter {rep}</p>
+                </template>
+             </div> -->
+             <div class="slds-col" style="display: grid;">
+                <template if:true={showLocationFilter}>
+                        <span>Location Filter:{local} <lightning-button-icon icon-name="utility:close" 
+                                                        name="location"  size="xx-small" 
+                                                        alternative-text="clear" onclick={handleFilter}></lightning-button-icon></span>
+                </template>
+                <template if:true={showRepFilter}>
+                        <span>Sales Rep Filter: {rep} <lightning-button-icon icon-name="utility:close" 
+                                                        name="rep"  size="xx-small" 
+                                                        alternative-text="clear" onclick={handleFilter}></lightning-button-icon></span>
+                </template>
+             </div>
              <div class="slds-col" onkeyup={handleKeyUp}>
                      <lightning-input
                          name="enter-search"
                          label=""
-                         placeholder="Search Here"
+                         placeholder="Product SKU or Name"
                          type="search"
                          oncommit={handleClear}
                      ></lightning-input>
@@ -62,6 +81,21 @@
                              <th scope="col" class="slds-is-resizable">
                                      <div class="slds-truncate" title="Product Code">Product Code</div>
                              </th>
+                             <th scope="col" class="slds-is-resizable">
+                                <div class="slds-truncate" title="Location">Location
+                                <lightning-button-icon icon-name="utility:add" class="slds-m-left_xx-small" 
+                                name='location' size="x-small" 
+                                alternative-text="filter location" 
+                                title="Location Filter" onclick={handleFilterSearch}></lightning-button-icon>
+                        </div>
+                            </th>
+                            <th scope="col" class="slds-is-resizable">
+                                <div class="slds-truncate" title="Rep">Rep
+                                        <lightning-button-icon icon-name="utility:add"  class="slds-m-left_xx-small"
+                                        name='rep' size="x-small" alternative-text="open Search" 
+                                        title="Rep Filter" onclick={handleFilterSearch}></lightning-button-icon>
+                                </div>        
+                        </th>
                              <th scope="col" class="slds-is-resizable">
                                      <div class="slds-truncate" title="Qty">Quantity</div>
                              </th>
@@ -109,6 +143,18 @@
                                                              {x.Product_Code__c}
                                                      </div>
                                              </td>
+                                             <td>
+                                                <div class="slds-truncate">
+                                                        {x.location}
+                                                        
+                                                </div>
+                                             </td>
+                                        <td>
+                                                <div class="slds-truncate">
+                                                        {x.salesRep}
+                                                        
+                                                </div>
+                                        </td>
                                              <td>
                                                      <div class="slds-truncate">
                                                              {x.Quantity__c}
