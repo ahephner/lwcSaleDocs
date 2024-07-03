@@ -1,4 +1,5 @@
 <template>
+        <div style="width: 991px">
     <template if:true={buildingOrder}>
              <div class="exampleHolder">
                      <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
@@ -180,6 +181,34 @@
                                                              {x.Doc_Date__c}
                                                      </div>
                                              </td>
+                                             <td>
+                                                <!--Allow input from Rep  -->
+                                                <template if:false={x.showCount}>
+                                                        <div class="slds-truncate">
+                                                                <lightning-button variant={x.rowVariant} label={x.btnName}
+                                                                data-target={x.Id} 
+                                                                title={x.btnName} onclick={handleRowClick} name={x.Id} 
+                                                                ></lightning-button>
+                                                        </div>
+                                                </template>
+                                                <!-- <template if:true={x.showCount}>
+                                                        <div class="slds-truncate">
+                                                                <div class="countBox">
+                                                                        <h4>Qty: {x.visAmount}</h4>
+                                                                </div>
+                                                        <div class="butBox">
+                                                                <lightning-button-group>
+                                                                <lightning-button-icon variant="base" size="small" icon-name="utility:dash" 
+                                                                alternative-text="subtract" name={x.Product_Code__c} onclick={handleMinus}></lightning-button-icon>
+                                                                <lightning-button-icon variant="base" size="small" icon-name="utility:add" 
+                                                                alternative-text="add" name={x.Product_Code__c} onclick={handleAdd}></lightning-button-icon>
+                                                                <lightning-button-icon variant="base" size="small" icon-name="utility:close" 
+                                                                alternative-text="add" name={x.Product_Code__c} onclick={closeAdd}></lightning-button-icon>
+                                                                </lightning-button-group>
+                                                        </div>
+                                                        </div>
+                                                </template> -->
+                                        </td>
                                      </tr>
                                      
                              </template>
@@ -205,4 +234,5 @@
      <!-- </template> -->
      </div>
 </template>
+</div>
 </template>

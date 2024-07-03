@@ -7,10 +7,55 @@ public with sharing class getSalesDetails {
         where Account__c =: recordId ORDER BY Doc_Date__c DESC
         LIMIT :limitSize
         OFFSET :offset];  
+            //list<pricebookentry> test = getSalesDetails.priorityPricingList(pbIds, related);
 
         return related; 
     }
-    
+    @auraEnabled(cacheable=true)
+    public static list<pricebookentry> priorityPricingReOrder(list<string> priceBookIds, string productCode){
+        list<pricebookentry> priorityPrice = new list<pricebookentry>();
+        for(string x:priceBookIds){
+              priorityPrice = [select Id, Pricebook2Id,Pricebook2.Name,Pricebook2.IsStandard, List_Margin_Calculated__c, 
+                                          UnitPrice, Floor_Price__c, Level_1_UserView__c,Level_One_Margin__c, Level_2_UserView__c,Level_2_Margin__c,
+                                          Product_Cost__c from PricebookEntry 
+                                          where IsActive = true and Pricebook2Id =:x and Product2.ProductCode =: productCode];  
+             
+            if(priorityPrice.size()==0){
+            system.debug(priorityPrice.size());
+                continue; 
+            }else{
+                break;
+            }
+        }
+
+        return priorityPrice; 
+    }
+
+    // @auraEnabled(cacheable=true)
+    // public static list<pricebookentry> priorityPricingList(list<string> priceBookIds, list<Sales_Doc_Detail__c> productIds){
+    //     list<pricebookentry> priorityPrice = new list<pricebookentry>();
+    //     system.debug(priceBookIds);
+    //     //system.debug(productIds); 
+    //     for(Sales_Doc_Detail__c y:productIds){
+    //         system.debug(y.Product_Code__c); 
+        
+    //     for(string x:priceBookIds){
+    //            list<pricebookentry> matching = [select Id, Pricebook2Id,Pricebook2.Name,Pricebook2.IsStandard, 
+    //                                       		UnitPrice, Floor_Price__c, Level_1_UserView__c,Level_One_Margin__c, Level_2_UserView__c,Level_2_Margin__c,
+    //                                       		Product_Cost__c from PricebookEntry 
+    //                                       		where IsActive = true and Pricebook2Id =:x and Product2.ProductCode =: y.Product_Code__c];  
+             
+    //         if(matching.size()>0){
+    //         priorityPrice.add(matching[0]);
+    //             break; 
+    //         }else{
+    //             continue;
+    //         }
+    //     }
+	// }
+    //     return priorityPrice; 
+    // }
+
     @AuraEnabled(cacheable=true)
     public static list<Sales_Doc_Detail__c> fallBack(string recordId, string term){
         string searchTerm = '%'+term+'%'; 
@@ -32,6 +77,16 @@ public with sharing class getSalesDetails {
         public string code {get;set;}
         @AuraEnabled
         public integer quantity {get; set;}
+        @AuraEnabled
+        public string priceBookEntry {get; set;}
+        @AuraEnabled
+        public string priceBookName {get; set;}
+        @AuraEnabled
+        public string priceBookId {get; set;}
+        @AuraEnabled
+        public integer unitPrice {get; set;}
+        @AuraEnabled
+        public integer listMargin {get; set;}
     }
     
     @AuraEnabled
@@ -39,10 +94,10 @@ public with sharing class getSalesDetails {
         String pricebookId = '01s410000077vSKAAY';
         String pClass = 'Simple'; 
         //sandbox rec type
-        //string recType = '01275000000CgcYAAS';
-        string recType = '0122M000001ElAYQA0'; 
+        string recType = '01275000000CgcYAAS';
+        //string recType = '0122M000001ElAYQA0'; 
         string newOppId; 
-        Map<String, Integer> prodMap = new Map<String, Integer>();
+        Map<String, ProdWrapper> prodMap = new Map<String, ProdWrapper>();
         list<OpportunityLineItem> lineItems = new List<OpportunityLineItem>();  
         Savepoint sp = Database.setSavepoint();
         try{
@@ -60,7 +115,7 @@ public with sharing class getSalesDetails {
             insert opp;
             newOppId = opp.Id; 
         for(ProdWrapper x: prod){
-            prodMap.put(x.code, x.quantity); 
+            prodMap.put(x.code, x); 
         }
         
 		List<PricebookEntry> pbe = [select id, Floor_Price__c, ProductCode, Product2.Name, Product2.Product_Status__c, Agency_Product__c,
@@ -68,27 +123,33 @@ public with sharing class getSalesDetails {
                                     Level_1_UserView__c, Level_One_Margin__c, Level_2_UserView__c, Level_2_Margin__c, Product_Cost__c
                                     from PricebookEntry where isActive = True AND ProductCode in: prodMap.keySet() AND Product2.ProductClass =:pClass
                                    AND Pricebook2Id =: priceBookId];  
-            
+            system.debug(prodMap);
             for(PriceBookEntry y: pbe){
                 if(y.Agency_Product__c == True){
                     lineItems.add(new OpportunityLineItem(
                     	Product2Id = y.Id,
                 		OpportunityId = opp.Id,
+                        altPriceBookEntryId__c = prodMap.get(y.ProductCode).priceBookEntry,
+                        altPriceBookId__c = prodMap.get(y.ProductCode).priceBookId,
+                        altPriceBookName__c = prodMap.get(y.ProductCode).priceBookName,
                     	CPQ_Unit_Price__c = y.Floor_Price__c,
                     	CPQ_Margin__c = 0,
                     	Cost__c = y.Product_Cost__c,
-                  		UnitPrice = y.Floor_Price__c,
-                		Quantity = prodMap.get(y.ProductCode)
+                  		UnitPrice = prodMap.get(y.ProductCode).unitPrice,
+                		Quantity = prodMap.get(y.ProductCode).quantity
                 )); 
                 }else{
                     lineItems.add(new OpportunityLineItem(
                     	Product2Id = y.Id,
                 		OpportunityId = opp.Id,
-                    	CPQ_Unit_Price__c = y.Level_2_UserView__c,
-                    	CPQ_Margin__c = y.Level_2_Margin__c,
+                        altPriceBookEntryId__c = prodMap.get(y.ProductCode).priceBookEntry,
+                        altPriceBookId__c = prodMap.get(y.ProductCode).priceBookId,
+                        altPriceBookName__c = prodMap.get(y.ProductCode).priceBookName,
+                    	CPQ_Unit_Price__c = prodMap.get(y.ProductCode).unitPrice,
+                    	CPQ_Margin__c = prodMap.get(y.ProductCode).listMargin,
                     	Cost__c = y.Product_Cost__c,
-                  		UnitPrice = y.Level_2_UserView__c,
-                		Quantity = prodMap.get(y.ProductCode)
+                  		UnitPrice = prodMap.get(y.ProductCode).unitPrice,
+                		Quantity = prodMap.get(y.ProductCode).quantity
                 )); 
                 }            
             }          
@@ -110,6 +171,7 @@ public with sharing class getSalesDetails {
         String pClass = 'Simple'; 
         //sandbox rec type
         //string recType = '01275000000CgcYAAS';
+        //Prod CPQ rec type
         string recType = '0122M000001ElAYQA0'; 
         string newOppId; 
         Map<String, Integer> prodMap = new Map<String, Integer>();
@@ -168,6 +230,7 @@ public with sharing class getSalesDetails {
                 insert lineItems; 
             }
         }catch(exception e){
+            system.debug(string.valueof(e)); 
                Database.rollback(sp);
                ApexPages.addMessages(e); 
                return null;

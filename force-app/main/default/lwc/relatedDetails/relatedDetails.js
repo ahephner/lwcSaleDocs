@@ -2,8 +2,11 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import bestPrice from '@salesforce/apex/getSalesDetails.priorityPricingReOrder'
+import getPriceBooks from '@salesforce/apex/omsCPQAPEX.getPriorityPriceBooks';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
+import ProductCode from '@salesforce/schema/PricebookEntry.ProductCode';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
@@ -42,6 +45,31 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
     
     rowLimit = 25;
     rowOffSet = 0; 
+
+    normalPriceBooks = []
+    tempHold = new Set();
+    //get pricebooks
+    @wire(getPriceBooks,{accountId: '$recordId'})
+    wiredPriceBooks({error, data}){
+        if(data){
+            let standardPriceBook = {Pricebook2Id: '01s410000077vSKAAY',Priority:6, PriceBook2:{Name:'Standard'} }
+            let order = [...data, standardPriceBook].filter((x)=>x.Priority!=undefined).sort((a,b)=>{
+                return a.Priority - b.Priority; 
+            })
+              console.log(order)
+            for(let i = 0; i<order.length; i++){
+                this.tempHold.add(order[i].Pricebook2Id)
+                //console.log(`Priority ${order[i].Priority} - ${order[i].PriceBook2.Name}`)
+                
+            }
+            this.normalPriceBooks = [...this.tempHold]
+            console.log(this.normalPriceBooks, 1)
+        }else if(error){
+            this.normalPriceBooks = ["01s410000077vSKAAY"];
+            console.warn('error loading price books assigned standard price books')
+        }
+    }
+
 
     connectedCallback(){
         this.loadData(); 
@@ -140,19 +168,37 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             containerChoosen.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
             
         }
-         handleRowClick(e){
+        //fields needed for new opp line items
+        pbeId; 
+        pbId;
+        unitPrice;
+        pbName; 
+        listMargin; 
+       async  handleRowClick(e){
 
             let pc = e.target.name; 
             //find index by ID value of selectable products
             let index = this.salesDocs.findIndex(x => x.Id === pc);
             //See if selected product has been 
-            let newProd = this.selectedProducts.findIndex(x => x.code === this.salesDocs[index].Product_Code__c);                  
+            let newProd = this.selectedProducts.findIndex(x => x.code === this.salesDocs[index].Product_Code__c); 
+            let pPricing =  await bestPrice({priceBookIds: this.normalPriceBooks, productCode: this.salesDocs[index].Product_Code__c})                 
+            this.pbeId = pPricing[0].Id;
+            this.pbId = pPricing[0].Pricebook2Id;
+            this.unitPrice = pPricing[0].UnitPrice;
+            this.pbName = pPricing[0].Pricebook2.Name;
+            this.listMargin = pPricing[0].List_Margin_Calculated__c; 
+             
             let button = this.salesDocs[index].showCount; 
                 if(newProd<0){
                     this.selectedProducts = [
                         ...this.selectedProducts, {
                              code: this.salesDocs[index].Product_Code__c,
-                             quantity: this.salesDocs[index].Quantity__c
+                             quantity: this.salesDocs[index].Quantity__c,
+                             priceBookEntry: this.pbeId,
+                             priceBookName: this.pbName,
+                             priceBookId: this.pbId, 
+                             unitPrice: this.unitPrice,
+                             listMargin: this.listMargin
                         }
                     ]
                     //show user prod selected
@@ -188,8 +234,6 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             let tableIndex = this.salesDocs.findIndex(x => x.Product_Code__c === evt.target.name);
             this.selectedProducts[index].quantity ++; 
             this.salesDocs[tableIndex].visAmount ++;
-            console.log('new qty ' , this.selectedProducts[index].quantity);
-            
         }
 //WHEN THE VALUE IS 0 RESET THE FIELD AND CLOSE THE COUNTER    
         handleMinus(evt){
