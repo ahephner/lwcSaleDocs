@@ -6,7 +6,7 @@ import bestPrice from '@salesforce/apex/getSalesDetails.priorityPricingReOrder'
 import getPriceBooks from '@salesforce/apex/omsCPQAPEX.getPriorityPriceBooks';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
-
+import { priorityPricing} from 'c/helperOMS';
 export default class MobileRelated extends NavigationMixin(LightningElement){
     @api prop1; 
     @api recordId;
@@ -32,17 +32,8 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
     @wire(getPriceBooks,{accountId: '$recordId'})
     wiredPriceBooks({error, data}){
         if(data){
-            let standardPriceBook = {Pricebook2Id: '01s410000077vSKAAY',Priority:6, PriceBook2:{Name:'Standard'} }
-            let order = [...data, standardPriceBook].filter((x)=>x.Priority!=undefined).sort((a,b)=>{
-                return a.Priority - b.Priority; 
-            })
-              console.log(order)
-            for(let i = 0; i<order.length; i++){
-                this.tempHold.add(order[i].Pricebook2Id)
-                //console.log(`Priority ${order[i].Priority} - ${order[i].PriceBook2.Name}`)
-                
-            }
-            this.normalPriceBooks = [...this.tempHold]
+            let pbInfo =  priorityPricing(data);
+            this.normalPriceBooks = [...pbInfo.priceBookIdArray]
             console.log(this.normalPriceBooks, 1)
         }else if(error){
             this.normalPriceBooks = ["01s410000077vSKAAY"];
@@ -245,7 +236,7 @@ export default class MobileRelated extends NavigationMixin(LightningElement){
         }
         makeOrder(){
             this.loadingOrder = true; 
-            createOp({accId: this.recordId, prod: this.selectedProducts})
+            createOp({accId: this.recordId, pw: this.selectedProducts})
             .then(res=>{
                 this.loadingOrder = false; 
                 this.newId = res

@@ -6,6 +6,7 @@ import bestPrice from '@salesforce/apex/getSalesDetails.priorityPricingReOrder'
 import getPriceBooks from '@salesforce/apex/omsCPQAPEX.getPriorityPriceBooks';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
+import { priorityPricing} from 'c/helperOMS';
 import ProductCode from '@salesforce/schema/PricebookEntry.ProductCode';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
@@ -52,18 +53,9 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
     @wire(getPriceBooks,{accountId: '$recordId'})
     wiredPriceBooks({error, data}){
         if(data){
-            let standardPriceBook = {Pricebook2Id: '01s410000077vSKAAY',Priority:6, PriceBook2:{Name:'Standard'} }
-            let order = [...data, standardPriceBook].filter((x)=>x.Priority!=undefined).sort((a,b)=>{
-                return a.Priority - b.Priority; 
-            })
-              console.log(order)
-            for(let i = 0; i<order.length; i++){
-                this.tempHold.add(order[i].Pricebook2Id)
-                //console.log(`Priority ${order[i].Priority} - ${order[i].PriceBook2.Name}`)
-                
-            }
-            this.normalPriceBooks = [...this.tempHold]
-            console.log(this.normalPriceBooks, 1)
+            let pbInfo =  priorityPricing(data);
+            this.normalPriceBooks = [...pbInfo.priceBookIdArray]
+            console.log(this.normalPriceBooks)
         }else if(error){
             this.normalPriceBooks = ["01s410000077vSKAAY"];
             console.warn('error loading price books assigned standard price books')
@@ -193,12 +185,12 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
                     this.selectedProducts = [
                         ...this.selectedProducts, {
                              code: this.salesDocs[index].Product_Code__c,
-                             quantity: this.salesDocs[index].Quantity__c,
+                             listMargin: this.listMargin,
                              priceBookEntry: this.pbeId,
-                             priceBookName: this.pbName,
                              priceBookId: this.pbId, 
+                             priceBookName: this.pbName,
+                             quantity: this.salesDocs[index].Quantity__c,
                              unitPrice: this.unitPrice,
-                             listMargin: this.listMargin
                         }
                     ]
                     //show user prod selected
@@ -262,11 +254,13 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
         }
         makeOrder(){
             this.buildingOrder = true; 
-            createOp({accId: this.recordId, prod: this.selectedProducts})
+            let products = [...this.selectedProducts]; 
+            createOp({accId: this.recordId, pw: products})
             .then(res=>{
-                this.buildingOrder = false; 
-                this.newId = res
-                this.naviToOpp(this.newId); 
+                //console.log(res)
+                 this.buildingOrder = false; 
+                 this.newId = res
+                 this.naviToOpp(this.newId); 
             }).catch(err=>{
                 console.log(err);
             })
@@ -275,7 +269,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
 
         eopOrder(){
             this.buildingOrder = true; 
-            eopOp({accId: this.recordId, prod: this.selectedProducts})
+            eopOp({accId: this.recordId, pw: this.selectedProducts})
             .then(res=>{
                 this.buildingOrder = false; 
                 this.newId = res
