@@ -2,6 +2,7 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import counterDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import getPriceBooks from '@salesforce/apex/omsCPQAPEX.getPriorityPriceBooks';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn, locIsIn, repIsIn, termPlus, repLocation, allThree} from 'c/utilityHelper';
 import LightningPrompt from 'lightning/prompt';
@@ -47,15 +48,44 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
     
     rowLimit = 25;
     rowOffSet = 0; 
+   
+    normalPriceBooks = []
+    tempHold = new Set();
+    //get pricebooks
+    @wire(getPriceBooks,{accountId: '$recordId'})
+    wiredPriceBooks({error, data}){
+        if(data){
+            let standardPriceBook = {Pricebook2Id: '01s410000077vSKAAY',Priority:6, PriceBook2:{Name:'Standard'} }
+            let order = [...data, standardPriceBook].filter((x)=>x.Priority!=undefined).sort((a,b)=>{
+                return a.Priority - b.Priority; 
+            })
+              console.log(order)
+            for(let i = 0; i<order.length; i++){
+                this.tempHold.add(order[i].Pricebook2Id)
+                //console.log(`Priority ${order[i].Priority} - ${order[i].PriceBook2.Name}`)
+                
+            }
+            this.normalPriceBooks = [...this.tempHold]
+            console.log(this.normalPriceBooks, 1)
+        }else if(error){
+            this.normalPriceBooks = ["01s410000077vSKAAY"];
+            console.warn('error loading price books assigned standard price books')
+        }
+        if(this.normalPriceBooks.length >=1){
+            this.loadData();
+            this.loading = false; 
+            this.startEventListener();
+
+        }
+    }
 
     connectedCallback(){
-        this.loadData(); 
-        this.loading = false; 
-        this.startEventListener();
+         
+
     }
 
         loadData(){
-           return counterDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId})
+           return counterDetails({limitSize: this.rowLimit, offset: this.rowOffSet, recordId: this.recordId, pbIds: this.normalPriceBooks})
             .then((res)=>{
                 if(res.length>1){
                     let records

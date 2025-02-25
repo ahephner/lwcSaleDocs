@@ -60,33 +60,33 @@ public class test_getSalesDetails {
         Id pricebookId = Test.getStandardPricebookId();
 
         //create product2 that is active
-        product2 prod = new product2(name ='product', IsActive= True); 
+        product2 prod = new product2(name ='product', IsActive= True, Override_Cost__c = 5, Average_Cost__c = 4); 
         insert prod; 
         
         PricebookEntry pbe = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=prod.id,
-                                                 unitprice=4, IsActive = True, UseStandardPrice=False);
+                                                 unitprice=10, IsActive = True, UseStandardPrice=False);
         insert pbe; 
 //create product2 that will be deactivated
-        product2 widget = new product2(name ='widget',ProductCode='BA12', IsActive= True, Agency_Pricing__c=true); 
+        product2 widget = new product2(name ='widget',ProductCode='BA12', IsActive= True, Agency_Pricing__c=true, Override_Cost__c = 5, Average_Cost__c = 4); 
         insert widget; 
         
         
         PricebookEntry widgetpbe = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=widget.id,
-                                                 unitprice=4, IsActive = True, UseStandardPrice=False);
+                                                 unitprice=45, IsActive = True, UseStandardPrice=False);
         insert widgetpbe; 
  //normal product
-         product2 rake = new product2(name ='rake', IsActive= True, Agency_Pricing__c=false); 
+         product2 rake = new product2(name ='rake', IsActive= True, Agency_Pricing__c=false,Override_Cost__c = 5, Average_Cost__c = 4); 
         insert rake; 
         
         PricebookEntry rakepbe = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=rake.id,
-                                                 unitprice=4, IsActive = True, UseStandardPrice=False);
+                                                 unitprice=44, IsActive = True, UseStandardPrice=False);
         insert rakepbe;  
  //zero margin
-        product2 shovel = new product2(name ='shovel',ProductCode='AT12', IsActive= True, Agency_Pricing__c=false, Product_Category__c = 'Packaged Product'); 
+        product2 shovel = new product2(name ='shovel',ProductCode='AT12', IsActive= True, Agency_Pricing__c=false, Product_Category__c = 'Packaged Product', Override_Cost__c = 5, Average_Cost__c = 4); 
         insert shovel; 
         
         PricebookEntry shovelpbe = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id=shovel.id,
-                                                 unitprice=4, IsActive = True, UseStandardPrice=False);
+                                                 unitprice=24, IsActive = True, UseStandardPrice=False);
         insert shovelpbe; 
 //shipping charge
         product2 ship = new product2(name='ATS SHIPPING', ProductCode= 'ATS-SHIPPING', IsActive=True, Product_Category__c='ATS Shipping');
@@ -126,13 +126,21 @@ public class test_getSalesDetails {
         
         getSalesDetails.ProdWrapper wrap1 = new getSalesDetails.ProdWrapper();
         wrap1.code = shovel.ProductCode;
-        wrap1.quantity = 2; 
-
+        wrap1.quantity = 2;
+        wrap1.priceBookEntry = 'thissispusdfjld'; 
+        wrap1.priceBookName = 'Big Book';
+        wrap1.priceBookId = 'dfjldaj;dja;dlkjfjf';
+        wrap1.unitPrice = 15; 
+		wrap1.listMargin = 23; 
      //need an agency product
         getSalesDetails.ProdWrapper wrap2 = new getSalesDetails.ProdWrapper();
         wrap2.code = widget.ProductCode;
         wrap2.quantity = 2; 
-        
+        wrap2.priceBookEntry = 'thissispusdfjld'; 
+        wrap2.priceBookName = 'Big Book';
+        wrap2.priceBookId = 'dfjldaj;dja;dlkjfjf';
+        wrap2.unitPrice = 15; 
+		wrap2.listMargin = 23; 
         wrapList.add(wrap1);
         wrapList.add(wrap2); 
         
@@ -141,5 +149,68 @@ public class test_getSalesDetails {
 			getSalesDetails.eopOp(cust.Id, wrapList);
          test.stopTest();   
 
+    }
+    
+    @isTest
+    static void Test_getPriceBookIds(){
+        //create test customer
+        Account cust = new Account();
+        cust.Name = 'Test123456';
+        cust.Type = 'Customer';
+        cust.Customer_Name__c = 'Test Customer 123456';
+        cust.Buyer_Account_Created__c = true;
+        insert cust;
+        
+        BuyerAccount ba = new BuyerAccount(BuyerId= cust.Id,BuyerStatus='Active', CommerceType= 'Buyer', IsActive=true, Name='Aj Account');
+        insert ba; 
+        // standard pricebook
+        Id pricebook = Test.getStandardPricebookId();
+        //custom
+        PriceBook2 pb2=new PriceBook2();
+        pb2.Name = 'test';
+        pb2.IsActive = true;
+        //custom 3
+        PriceBook2 pb3=new PriceBook2();
+        pb3.Name = 'book 2';
+        pb3.IsActive = true;
+        insert pb3;
+		//product
+        product2 prod = new product2(name ='product', IsActive= True, ProductCode='123', Product_Status__c ='Stock', 
+                                    Subcategory__c='Chemicals-Herbicide', Product_Family__c='FMC', Floor_Type__c ='Floor', Floor_Price__c = 100); 
+        insert prod; 
+        
+        //Standard pricebook entry        
+        PricebookEntry stpbe = new PricebookEntry(Pricebook2Id = pricebook, Product2Id=prod.id,
+                                                 unitprice=90, IsActive = True, UseStandardPrice=False);
+        insert stpbe; 
+        //pricebook entry        
+        PricebookEntry pbe = new PricebookEntry(Pricebook2Id = pb2.Id, Product2Id=prod.id,
+                                                 unitprice=100, IsActive = True, UseStandardPrice=False);
+        
+        PricebookEntry pbe3 = new PricebookEntry(Pricebook2Id = pb3.Id, Product2Id=prod.id,
+                                                 unitprice=110, IsActive = True, UseStandardPrice=False);
+        insert pbe3; 
+        //buyer group
+        BuyerGroup bg = new BuyerGroup(); 
+        bg.Name = 'account based';
+        //bg.Role = 'Account Based'; 
+        insert bg; 
+        //buying group member
+        BuyerGroupMember bgm = new BuyerGroupMember(BuyerGroupId = bg.Id, BuyerId = cust.Id); 
+        insert bgm; 
+        //buyer group pricebook
+        BuyerGroupPricebook bgpb = new BuyerGroupPricebook(BuyerGroupId = bg.Id, isActive= true, Pricebook2Id = pb3.Id); 
+        insert bgpb;
+        
+        //create list of price book entry strings
+        list<string> priceBookIds = new list<string>(); 
+        priceBookIds.add(pricebook);
+        priceBookIds.add(pb2.id);
+        priceBookIds.add(pb3.id);
+        test.StartTest();
+        	list<pricebookentry> priorityPricing =  getSalesDetails.priorityPricingReOrder(priceBookIds, prod.Id);
+        test.stopTest();
+        
+        
     }
 }

@@ -2,8 +2,12 @@ import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getDetails from '@salesforce/apex/getSalesDetails.getDetails';
 import createOp from '@salesforce/apex/getSalesDetails.createOp';
+import bestPrice from '@salesforce/apex/getSalesDetails.priorityPricingReOrder'
+import getPriceBooks from '@salesforce/apex/omsCPQAPEX.getPriorityPriceBooks';
 import eopOp from '@salesforce/apex/getSalesDetails.eopOp';
 import {isIn} from 'c/utilityHelper';
+import { priorityPricing} from 'c/helperOMS';
+import ProductCode from '@salesforce/schema/PricebookEntry.ProductCode';
 export default class RelatedDetails extends NavigationMixin(LightningElement){
     @api recordId;
     @api totalNumberOfRows;
@@ -42,6 +46,22 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
     
     rowLimit = 25;
     rowOffSet = 0; 
+
+    normalPriceBooks = []
+    tempHold = new Set();
+    //get pricebooks
+    @wire(getPriceBooks,{accountId: '$recordId'})
+    wiredPriceBooks({error, data}){
+        if(data){
+            let pbInfo =  priorityPricing(data);
+            this.normalPriceBooks = [...pbInfo.priceBookIdArray]
+            console.log(this.normalPriceBooks)
+        }else if(error){
+            this.normalPriceBooks = ["01s410000077vSKAAY"];
+            console.warn('error loading price books assigned standard price books')
+        }
+    }
+
 
     connectedCallback(){
         this.loadData(); 
@@ -140,19 +160,37 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             containerChoosen.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
             
         }
-         handleRowClick(e){
+        //fields needed for new opp line items
+        pbeId; 
+        pbId;
+        unitPrice;
+        pbName; 
+        listMargin; 
+       async  handleRowClick(e){
 
             let pc = e.target.name; 
             //find index by ID value of selectable products
             let index = this.salesDocs.findIndex(x => x.Id === pc);
             //See if selected product has been 
-            let newProd = this.selectedProducts.findIndex(x => x.code === this.salesDocs[index].Product_Code__c);                  
+            let newProd = this.selectedProducts.findIndex(x => x.code === this.salesDocs[index].Product_Code__c); 
+            let pPricing =  await bestPrice({priceBookIds: this.normalPriceBooks, productCode: this.salesDocs[index].Product_Code__c})                 
+            this.pbeId = pPricing[0].Id;
+            this.pbId = pPricing[0].Pricebook2Id;
+            this.unitPrice = pPricing[0].UnitPrice;
+            this.pbName = pPricing[0].Pricebook2.Name;
+            this.listMargin = pPricing[0].List_Margin_Calculated__c; 
+             
             let button = this.salesDocs[index].showCount; 
                 if(newProd<0){
                     this.selectedProducts = [
                         ...this.selectedProducts, {
                              code: this.salesDocs[index].Product_Code__c,
-                             quantity: this.salesDocs[index].Quantity__c
+                             listMargin: this.listMargin,
+                             priceBookEntry: this.pbeId,
+                             priceBookId: this.pbId, 
+                             priceBookName: this.pbName,
+                             quantity: this.salesDocs[index].Quantity__c,
+                             unitPrice: this.unitPrice,
                         }
                     ]
                     //show user prod selected
@@ -188,8 +226,6 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
             let tableIndex = this.salesDocs.findIndex(x => x.Product_Code__c === evt.target.name);
             this.selectedProducts[index].quantity ++; 
             this.salesDocs[tableIndex].visAmount ++;
-            console.log('new qty ' , this.selectedProducts[index].quantity);
-            
         }
 //WHEN THE VALUE IS 0 RESET THE FIELD AND CLOSE THE COUNTER    
         handleMinus(evt){
@@ -218,11 +254,13 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
         }
         makeOrder(){
             this.buildingOrder = true; 
-            createOp({accId: this.recordId, prod: this.selectedProducts})
+            let products = [...this.selectedProducts]; 
+            createOp({accId: this.recordId, pw: products})
             .then(res=>{
-                this.buildingOrder = false; 
-                this.newId = res
-                this.naviToOpp(this.newId); 
+                //console.log(res)
+                 this.buildingOrder = false; 
+                 this.newId = res
+                 this.naviToOpp(this.newId); 
             }).catch(err=>{
                 console.log(err);
             })
@@ -231,7 +269,7 @@ export default class RelatedDetails extends NavigationMixin(LightningElement){
 
         eopOrder(){
             this.buildingOrder = true; 
-            eopOp({accId: this.recordId, prod: this.selectedProducts})
+            eopOp({accId: this.recordId, pw: this.selectedProducts})
             .then(res=>{
                 this.buildingOrder = false; 
                 this.newId = res
