@@ -134,8 +134,8 @@ export default class CounterReOrder extends NavigationMixin(LightningElement){
             let cost; 
             let margin; 
             if(evt.Product_Std__r){
-                cost = evt.Product_Std__r.Agency_Pricing__c ? '': evt.Product_Std__r.Product_Cost__c;
-                margin = evt.Product_Std__r.Agency_Pricing__c ? '': evt.Margin__c;
+                cost = evt.Product_Std__r.Agency_Pricing__c ? 'Agency': evt.Product_Std__r.Product_Cost__c;
+                margin = evt.Product_Std__r.Agency_Pricing__c ? 'Agency': evt.Margin__c;
             }else if(evt.Product__r.Agency__c){
                 cost = '';
                 margin = ''; 
